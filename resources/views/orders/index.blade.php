@@ -12,7 +12,9 @@
         </button>
     </div>
 </div>
-
+@if(session('success'))
+<div class="alert alert-success">{{ session('success') }}</div>
+@endif
 <div class="container-table">
     <div class="table-wrapper">
         <table class="order-table">
@@ -33,7 +35,21 @@
                 @forelse($orders as $order)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ ucfirst($order->status) }}</td>
+                    <td>
+                        @php
+                            $status = strtolower($order->status);
+                            $statusColor = match ($status) {
+                                'request' => '#B0DB9C',
+                                're-schedule' => '#ffc107',
+                                default => '#dee2e6',
+                            };
+                        @endphp
+                        <span 
+                            class="badge px-2 py-2 text-dark" 
+                            style="background-color: {{ $statusColor }}; border-radius: 2rem;">
+                            {{ ucfirst($order->status) }}
+                        </span>
+                    </td>
                     <td>{{ $order->id_order }}</td>
                     <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
                     <td>{{ $order->pelanggan->alamat ?? '-' }}</td>
@@ -47,21 +63,26 @@
                     <td>{{ $order->tanggal_pembersihan }}</td>
                     <td>{{ $order->waktu_pembersihan }}</td>
                     <td>
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-info btn-sm">
-                                Detail
+                        <div class="d-flex flex-wrap gap-1 justify-content-start">
+                            <a href="{{ route('orders.detail', $order->id_order) }}" class="btn-info">
+                                Layanan
                             </a>
                             <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger btn-sm">
+                                <button type="submit" class="delete-button">
                                     Hapus
                                 </button>
                             </form>
                             <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn btn-success btn-sm">
+                                <button type="submit" class="btn-approve">
                                     Setuju
+                                </button>
+                            </form>
+                            <form action="#" method="GET">
+                                <button type="submit" class="btn-reschedule">
+                                    Re-schedule
                                 </button>
                             </form>
                         </div>
@@ -137,39 +158,52 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // 1. Pastikan ID ini sesuai dengan select element Anda
     const pelangganSelect = document.getElementById('id_pelanggan');
     const alamatInput = document.getElementById('inputAlamat');
     const gmapsInput = document.getElementById('inputGmaps');
 
-    // 2. Fungsi untuk mengisi alamat otomatis
     function isiAlamatOtomatis() {
         const selectedOption = pelangganSelect.options[pelangganSelect.selectedIndex];
-        
-        // Debugging: Lihat di console browser
-        console.log('Data pelanggan:', {
-            alamat: selectedOption.getAttribute('data-alamat'),
-            gmaps: selectedOption.getAttribute('data-gmaps')
-        });
-
         if (selectedOption.value) {
             alamatInput.value = selectedOption.getAttribute('data-alamat') || '';
             gmapsInput.value = selectedOption.getAttribute('data-gmaps') || '';
         }
     }
 
-    // 3. Event listener untuk perubahan select
     pelangganSelect.addEventListener('change', isiAlamatOtomatis);
 
-    // 4. Trigger saat modal dibuka (optional)
     const orderModal = document.getElementById('tambahOrderModal');
     if (orderModal) {
         orderModal.addEventListener('shown.bs.modal', function() {
             isiAlamatOtomatis();
         });
     }
+
+    // Fungsi untuk mengisi jam_pembersihan otomatis 1 jam sebelum waktu_pembersihan
+    function setJamPembersihanSebelumnya() {
+        const waktuInput = document.getElementById('waktu_pembersihan');
+        const jamSebelumnyaInput = document.getElementById('jam_pembersihan');
+
+        waktuInput.addEventListener('input', function () {
+            if (!waktuInput.value) {
+                jamSebelumnyaInput.value = '';
+                return;
+            }
+
+            const [hours, minutes] = waktuInput.value.split(':').map(Number);
+            const date = new Date();
+            date.setHours(hours);
+            date.setMinutes(minutes);
+            date.setMinutes(date.getMinutes() - 60); // Kurangi 1 jam
+
+            const jam = String(date.getHours()).padStart(2, '0');
+            const menit = String(date.getMinutes()).padStart(2, '0');
+
+            jamSebelumnyaInput.value = `${jam}:${menit}`;
+        });
+    }
+
+    setJamPembersihanSebelumnya();
 });
 </script>
 @endpush
-
-
