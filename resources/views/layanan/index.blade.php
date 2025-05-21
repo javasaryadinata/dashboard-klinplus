@@ -39,10 +39,10 @@
                             <td>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="edit-button" data-bs-toggle="modal" 
-                                        data-bs-target="#editLayananModal{{ $layanan->id }}">
+                                        data-bs-target="#editLayananModal{{ $layanan->id_pricelist }}">
                                         Edit
                                     </button>
-                                    <form action="{{ route('layanan.destroy', $layanan->id) }}" method="POST">
+                                    <form action="{{ route('layanan.destroy', $layanan->id_pricelist) }}" method="POST">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="delete-button" 
@@ -106,41 +106,41 @@
 
     <!-- Modal Edit Layanan -->
     @foreach($layanans as $layanan)
-        <div class="modal fade" id="editLayananModal{{ $layanan->id }}" tabindex="-1" 
-             aria-labelledby="editLayananModalLabel{{ $layanan->id }}" aria-hidden="true">
+        <div class="modal fade" id="editLayananModal{{ $layanan->id_pricelist }}" tabindex="-1" 
+             aria-labelledby="editLayananModalLabel{{ $layanan->id_pricelist}}" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header bg-white text-dark">
-                        <h5 class="modal-title" id="editLayananModalLabel{{ $layanan->id }}">Edit Layanan</h5>
+                        <h5 class="modal-title" id="editLayananModalLabel{{ $layanan->id_pricelist }}">Edit Layanan</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
-                    <form method="POST" action="{{ route('layanan.update', $layanan->id) }}">
+                    <form method="POST" action="{{ route('layanan.update', $layanan->id_pricelist) }}">
                         @csrf
                         @method('PUT')
                         <div class="modal-body">
                             <div class="mb-3">
-                                <label for="edit_id_pricelist{{ $layanan->id }}" class="form-label">ID Layanan</label>
-                                <input type="text" class="form-control" id="edit_id_pricelist{{ $layanan->id }}" 
+                                <label for="edit_id_pricelist{{ $layanan->id_pricelist }}" class="form-label">ID Layanan</label>
+                                <input type="text" class="form-control" id="edit_id_pricelist{{ $layanan->id_pricelist }}" 
                                        name="id_pricelist" value="{{ $layanan->id_pricelist }}" required>
                             </div>
                             <div class="mb-3">
-                                <label for="edit_nama_layanan{{ $layanan->id }}" class="form-label">Nama Layanan</label>
-                                <input type="text" class="form-control" id="edit_nama_layanan{{ $layanan->id }}" 
+                                <label for="edit_nama_layanan{{ $layanan->id_pricelist }}" class="form-label">Nama Layanan</label>
+                                <input type="text" class="form-control" id="edit_nama_layanan{{ $layanan->id_pricelist }}" 
                                        name="nama_layanan" value="{{ $layanan->nama_layanan }}" required>
                             </div>
                             <div class="mb-3">
-                                <label for="edit_durasi{{ $layanan->id }}" class="form-label">Durasi (menit)</label>
-                                <input type="number" class="form-control" id="edit_durasi{{ $layanan->id }}" 
+                                <label for="edit_durasi{{ $layanan->id_pricelist }}" class="form-label">Durasi (menit)</label>
+                                <input type="number" class="form-control" id="edit_durasi{{ $layanan->id_pricelist }}" 
                                        name="durasi" value="{{ $layanan->durasi }}" required min="1">
                             </div>
                             <div class="mb-3">
-                                <label for="edit_harga{{ $layanan->id }}" class="form-label">Harga</label>
-                                <input type="number" class="form-control" id="edit_harga{{ $layanan->id }}" 
+                                <label for="edit_harga{{ $layanan->id_pricelist }}" class="form-label">Harga</label>
+                                <input type="number" class="form-control" id="edit_harga{{ $layanan->id_pricelist }}" 
                                        name="harga" value="{{ $layanan->harga }}" required>
                             </div>
                             <div class="mb-3">
-                                <label for="edit_deskripsi{{ $layanan->id }}" class="form-label">Deskripsi</label>
-                                <textarea class="form-control" id="edit_deskripsi{{ $layanan->id }}" 
+                                <label for="edit_deskripsi{{ $layanan->id_pricelist }}" class="form-label">Deskripsi</label>
+                                <textarea class="form-control" id="edit_deskripsi{{ $layanan->id_pricelist }}" 
                                           name="deskripsi" rows="3" required>{{ $layanan->deskripsi }}</textarea>
                             </div>
                         </div>
