@@ -1,8 +1,8 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use App\Models\Layanan;
+use App\Models\LayananRootKategori;
+use App\Models\LayananSubKategori;
 use Illuminate\Http\Request;
 
 class LayananController extends Controller
@@ -10,8 +10,8 @@ class LayananController extends Controller
     // Menampilkan daftar layanan
     public function index()
     {
-        $layanans = Layanan::orderBy('id_pricelist')->get();
-        return view('layanan.index', compact('layanans'));
+        $rootkategori = LayananRootKategori::with('subkategori')->get();
+        return view('layanan.index', compact('rootkategori'));
     }
 
     // Menyimpan layanan baru
@@ -19,55 +19,56 @@ class LayananController extends Controller
     {
         // Validasi input
         $validated = $request->validate([
-            'id_pricelist' => 'required|string|max:50|unique:layanans,id_pricelist',
-            'nama_layanan' => 'required|string|max:255',
-            'durasi' => 'required|string|max:50',
-            'harga' => 'required|numeric',
-            'deskripsi' => 'required|string',
+            'layanan_rootkategori_id' => 'required|string|max:50|exists:layanan_rootkategori,id',
+            'nama_subkategori'        => 'required|string|max:255',
+            'harga'                   => 'required|numeric',
         ]);
-        
-        // Membersihkan format harga jika ada karakter selain angka
-        $validated['harga'] = (int) preg_replace('/[^0-9]/', '', $validated['harga']);
-        $validated['id_pricelist'] = trim($validated['id_pricelist']);
-        
-        // Menyimpan data layanan
-        Layanan::create($validated);
-
-        // Redirect ke halaman daftar layanan dengan pesan sukses
-        return redirect()->route('layanan.index')
-            ->with('success', 'Layanan berhasil ditambahkan!');
+        LayananSubKategori::create($validated);
+        return redirect()->route('layanan.index')->with('layanan_success', 'Layanan berhasil ditambahkan!');
     }
 
     // Memperbarui layanan yang ada
-    public function update(Request $request, Layanan $layanan)
+    public function update(Request $request, $id)
     {
         // Validasi input
-        $validated = $request->validate([
-            'id_pricelist' => 'required|string|max:50|unique:layanans,id_pricelist,' . $layanan->id, // Update hanya untuk id layanan yang berbeda
-            'nama_layanan' => 'required|string|max:255',
-            'durasi' => 'required|string|max:50',
-            'harga' => 'required|numeric',
-            'deskripsi' => 'required|string',
+        $subkategori = LayananSubKategori::findOrFail($id);
+        $validated   = $request->validate([
+            'layanan_rootkategori_id' => 'required|string|max:50|exists:layanan_rootkategori,id',
+            'nama_subkategori'        => 'required|string|max:255',
+            'harga'                   => 'required|numeric',
         ]);
-        
-        // Membersihkan format harga jika ada karakter selain angka
-        $validated['harga'] = (int) preg_replace('/[^0-9]/', '', $validated['harga']);
-        
-        // Memperbarui data layanan
-        $layanan->update($validated);
-        
-        // Redirect ke halaman daftar layanan dengan pesan sukses
-        return redirect()->route('layanan.index')
-            ->with('success', 'Layanan berhasil diperbarui!');
+        $subkategori->update($validated);
+        return redirect()->route('layanan.index')->with('layanan_success', 'Layanan berhasil diperbarui!');
     }
 
     // Menghapus layanan
-    public function destroy(Layanan $layanan)
+    public function destroy($id)
     {
-        $layanan->delete();
+        $subkategori = LayananSubKategori::findOrFail($id);
+        $subkategori->delete();
         return redirect()->route('layanan.index')
-            ->with('success', 'Layanan berhasil dihapus!');
+            ->with('layanan_success', 'Layanan berhasil dihapus!');
+    }
+
+    // Menyimpan kategori baru
+    public function storeRootKategori(Request $request)
+    {
+        $validated = $request->validate([
+            'nama_rootkategori' => 'required|string|max:100|unique:layanan_rootkategori,nama_rootkategori',
+        ]);
+        LayananRootKategori::create($validated);
+        return redirect()->route('layanan.index')->with('kategori_success', 'Kategori baru berhasil ditambahkan!');
+    }
+
+    // Menghapus kategori
+    public function destroyRootKategori($id)
+    {
+        $kategori = LayananRootKategori::findOrFail($id);
+        // Optional: Cek jika masih ada subkategori, bisa dicegah penghapusan
+        if ($kategori->subkategori()->count() > 0) {
+            return redirect()->route('layanan.index')->with('error', 'Kategori tidak bisa dihapus karena masih memiliki subkategori.');
+        }
+        $kategori->delete();
+        return redirect()->route('layanan.index')->with('kategori_success', 'Kategori berhasil dihapus!');
     }
 }
-
-
