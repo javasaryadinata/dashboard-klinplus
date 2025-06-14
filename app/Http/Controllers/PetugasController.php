@@ -90,11 +90,10 @@ class PetugasController extends Controller
     }
 }
 
-
-    public function destroy(Petugas $petuga)
+    public function destroy(Petugas $petugas)
     {
         try {
-            $petuga->delete();
+            $petugas->delete();
             return redirect()
                 ->route('petugas.index')
                 ->with('success', 'Petugas berhasil dihapus!');
