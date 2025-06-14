@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Pelanggan;
+use App\Models\Kota;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
@@ -16,8 +17,9 @@ class PelangganController extends Controller
      */
     public function index()
     {
-        $pelanggans = Pelanggan::orderBy('created_at', 'asc')->paginate(10);
-        return view('pelanggan.index', compact('pelanggans'));
+        $pelanggans = Pelanggan::with('kota')->orderBy('created_at', 'asc')->paginate(10);
+        $kotas = Kota::orderBy('nama_kota')->get();
+        return view('pelanggan.index', compact('pelanggans', 'kotas'));
     }
 
     /**
@@ -26,7 +28,7 @@ class PelangganController extends Controller
     public function create()
     {
         return view('pelanggan.create', [
-            'id_pelanggan' => $this->generatePelangganId()
+            'id_pelanggan' => $this->generatePelangganId(),
         ]);
     }
 
@@ -37,33 +39,20 @@ class PelangganController extends Controller
 {
     // Validasi lebih eksplisit
     $validator = Validator::make($request->all(), [
-        'nama_pelanggan' => 'required|min:3|max:100',
-        'nomor_telepon' => [
-            'required',
-            'min:10',
-            'max:15',
-            'regex:/^[0-9]+$/',
-            'unique:pelanggans,nomor_telepon'
-        ],
-        'email' => [
-            'nullable',
-            'email',
-            'max:100',
-            'unique:pelanggans,email'
-        ],
-        'alamat' => 'nullable|string|max:255',
-        'gmaps' => 'nullable|url|max:500'
+        'nama_lengkap' => 'required|string|min:3|max:100',
+        'telp_pelanggan' => 'required|unique:pelanggan,telp_pelanggan',
+        'email'          => 'nullable|email|unique:pelanggan,email',
+        'id_kota'        => 'required|exists:kota,id_kota',
+        'alamat_lokasi'  => 'required|string|max:255',
+        'lokasi_gmaps'   => 'nullable|url|max:500',
+        'catatan'        => 'nullable|string|max:255'
     ], [
-        'nomor_telepon.unique' => 'Nomor telepon sudah terdaftar',
+        'telp_pelanggan.unique' => 'Nomor telepon sudah terdaftar',
         'email.unique' => 'Email sudah terdaftar',
-        'nomor_telepon.regex' => 'Hanya angka yang diperbolehkan'
     ]);
 
     if ($validator->fails()) {
-        return redirect()->back()
-            ->withErrors($validator)
-            ->withInput()
-            ->with('error', 'Validasi gagal: ' . $validator->errors()->first());
+         return redirect()->back()->withErrors($validator)->withInput();
     }
 
     try {
@@ -75,9 +64,7 @@ class PelangganController extends Controller
         return redirect()->route('pelanggan.index')
             ->with('success', 'Pelanggan berhasil ditambahkan');
     } catch (\Exception $e) {
-        Log::error('Error creating pelanggan: ' . $e->getMessage());
-        return back()->withInput()
-            ->with('error', 'Gagal menambahkan pelanggan. Silakan coba lagi.');
+        return redirect()->back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage());
     }
 }
 
@@ -115,8 +102,8 @@ protected function generatePelangganId(): string
     public function show(string $id)
     {
         try {
-            $pelanggan = Pelanggan::findOrFail($id);
-            return view('pelanggan.show', compact('pelanggan'));
+            $pelanggans = Pelanggan::findOrFail($id);
+            return view('pelanggan.index', compact('pelanggan'));
         } catch (\Exception $e) {
             Log::error('Error showing pelanggan: ' . $e->getMessage());
             return back()->with('error', 'Pelanggan tidak ditemukan.');
@@ -129,7 +116,7 @@ protected function generatePelangganId(): string
     public function edit(string $id)
     {
         try {
-            $pelanggan = Pelanggan::findOrFail($id);
+            $pelanggans = Pelanggan::findOrFail($id);
             return view('pelanggan.edit', compact('pelanggan'));
         } catch (\Exception $e) {
             Log::error('Error editing pelanggan: ' . $e->getMessage());
@@ -140,31 +127,23 @@ protected function generatePelangganId(): string
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, $id)
     {
-        $pelanggan = Pelanggan::findOrFail($id);
-
         $validator = Validator::make($request->all(), [
-            'nama_pelanggan' => 'required|min:3|max:100',
-            'nomor_telepon'  => [
+            'nama_lengkap' => 'required|string|min:3|max:100',
+            'telp_pelanggan' => [
                 'required',
-                'min:10',
-                'max:15',
-                'regex:/^[0-9]+$/',
-                Rule::unique('pelanggans')->ignore($pelanggan->id)
+                Rule::unique('pelanggan', 'telp_pelanggan')->ignore($id, 'id_pelanggan')
             ],
             'email' => [
                 'nullable',
                 'email',
-                'max:100',
-                Rule::unique('pelanggans')->ignore($pelanggan->id)
+                Rule::unique('pelanggan', 'email')->ignore($id, 'id_pelanggan')
             ],
-            'alamat' => 'nullable|string|max:255',
-            'gmaps'  => 'nullable|url|max:255'
-        ], [
-            'nomor_telepon.unique' => 'Nomor telepon ini sudah terdaftar',
-            'email.unique' => 'Email ini sudah terdaftar',
-            'nomor_telepon.regex' => 'Nomor telepon hanya boleh berisi angka'
+            'id_kota'        => 'required|exists:kota,id_kota',
+            'alamat_lokasi'  => 'required|string|max:255',
+            'lokasi_gmaps'   => 'nullable|url|max:500',
+            'catatan'        => 'nullable|string|max:255'
         ]);
 
         if ($validator->fails()) {
@@ -174,12 +153,12 @@ protected function generatePelangganId(): string
         }
 
         try {
-            $pelanggan->update($validator->validated());
+            $pelanggans = Pelanggan::findOrFail($id);
+            $pelanggans->update($validator->validated());
 
             return redirect()->route('pelanggan.index')
                 ->with('success', 'Data pelanggan berhasil diperbarui!');
         } catch (\Exception $e) {
-            Log::error('Error updating pelanggan: ' . $e->getMessage());
             return back()->withInput()->with('error', 'Gagal memperbarui data pelanggan.');
         }
     }
@@ -190,8 +169,8 @@ protected function generatePelangganId(): string
     public function destroy(string $id)
     {
         try {
-            $pelanggan = Pelanggan::findOrFail($id);
-            $pelanggan->delete();
+            $pelanggans = Pelanggan::findOrFail($id);
+            $pelanggans->delete();
 
             return redirect()->route('pelanggan.index')
                 ->with('success', 'Pelanggan berhasil dihapus!');

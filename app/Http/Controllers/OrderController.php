@@ -18,17 +18,17 @@ class OrderController extends Controller
     $orders = Order::with(['pelanggan', 'layanans'])->get();
     
     // Pastikan ambil kolom yang diperlukan termasuk alamat dan gmaps
-    $pelanggans = Pelanggan::select('id_pelanggan', 'nama_pelanggan', 'alamat', 'gmaps')->get();
+    $pelanggan = Pelanggan::select('id_pelanggan', 'nama_pelanggan', 'alamat', 'gmaps')->get();
     
     $layanans = Layanan::all();
     
-    return view('orders.index', compact('orders', 'pelanggans', 'layanans'));
+    return view('orders.index', compact('orders', 'pelanggan', 'layanans'));
 }
 
     public function store(Request $request)
 {
     $validated = $request->validate([
-        'id_pelanggan' => 'required|exists:pelanggans,id_pelanggan',
+        'id_pelanggan' => 'required|exists:pelanggan,id_pelanggan',
         'tanggal_pembersihan' => [
             'required',
             'date',

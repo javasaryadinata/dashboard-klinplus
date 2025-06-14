@@ -23,6 +23,7 @@
                     <th>Nama Pelanggan</th>
                     <th>No. Telepon</th>
                     <th>Email</th>
+                    <th>Kota</th>
                     <th>Alamat</th>
                     <th>Action</th>
                 </tr>
@@ -33,9 +34,10 @@
                     <td>{{ $loop->iteration }}</td>
                     <td>{{ $pelanggan->id_pelanggan ?? 'CS000000' }}</td>
                     <td>{{ $pelanggan->nama_pelanggan }}</td>
-                    <td>{{ $pelanggan->nomor_telepon }}</td>
+                    <td>{{ $pelanggan->telp_pelanggan }}</td>
                     <td>{{ $pelanggan->email ?? '-' }}</td>
-                    <td>{{ Str::limit($pelanggan->alamat, 30) }}</td>
+                    <td>{{ $pelanggan->kota->nama_kota ?? '-' }}</td>
+                    <td>{{ Str::limit($pelanggan->alamat_lokasi, 30) }}</td>
                     <td>
                         <div class="d-flex gap-2">
                             <a href="{{ route('pelanggan.edit', $pelanggan->id_pelanggan) }}" class="edit-button">
@@ -168,11 +170,21 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
+
+                    <div class="mb-4">
+                        <label for="id_kota" class="block text-gray-700">Kota</label>
+                        <select name="id_kota" id="id_kota" class="w-full px-3 py-2 border rounded-lg" required>
+                            <option value="">-- Pilih Kota --</option>
+                            @foreach($kotas as $kota)
+                                <option value="{{ $kota->id_kota }}">{{ $kota->nama_kota }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     
                     <div class="mb-3">
                         <label for="alamat" class="form-label">Alamat</label>
                         <textarea class="form-control @error('alamat') is-invalid @enderror" 
-                                  id="alamat" name="alamat" rows="3">{{ old('alamat') }}</textarea>
+                                  id="alamat" name="alamat" rows="3" required>{{ old('alamat') }}</textarea>
                         @error('alamat')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror

@@ -113,7 +113,7 @@
                     <label for="id_pelanggan" class="form-label">Pilih Pelanggan</label>
                     <select class="form-select" id="id_pelanggan" name="id_pelanggan" required>
                         <option value="" selected disabled>-- Pilih Pelanggan --</option>
-                        @foreach($pelanggans as $pelanggan)
+                        @foreach($pelanggan as $pelanggan)
                         <option 
                             value="{{ $pelanggan->id_pelanggan }}"
                             data-alamat="{{ $pelanggan->alamat }}"
