@@ -39,7 +39,7 @@ class PelangganController extends Controller
 {
     // Validasi lebih eksplisit
     $validator = Validator::make($request->all(), [
-        'nama_lengkap' => 'required|string|min:3|max:100',
+        'nama_pelanggan' => 'required|string|min:3|max:100',
         'telp_pelanggan' => 'required|unique:pelanggan,telp_pelanggan',
         'email'          => 'nullable|email|unique:pelanggan,email',
         'id_kota'        => 'required|exists:kota,id_kota',
@@ -130,7 +130,7 @@ protected function generatePelangganId(): string
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'nama_lengkap' => 'required|string|min:3|max:100',
+            'nama_pelanggan' => 'required|string|min:3|max:100',
             'telp_pelanggan' => [
                 'required',
                 Rule::unique('pelanggan', 'telp_pelanggan')->ignore($id, 'id_pelanggan')
@@ -153,8 +153,8 @@ protected function generatePelangganId(): string
         }
 
         try {
-            $pelanggans = Pelanggan::findOrFail($id);
-            $pelanggans->update($validator->validated());
+            $pelanggan = Pelanggan::findOrFail($id);
+            $pelanggan->update($validator->validated());
 
             return redirect()->route('pelanggan.index')
                 ->with('success', 'Data pelanggan berhasil diperbarui!');

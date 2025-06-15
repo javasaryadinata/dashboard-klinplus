@@ -40,9 +40,12 @@
                     <td>{{ Str::limit($pelanggan->alamat_lokasi, 30) }}</td>
                     <td>
                         <div class="d-flex gap-2">
-                            <a href="{{ route('pelanggan.edit', $pelanggan->id_pelanggan) }}" class="edit-button">
+                            <button type="button"
+                                class="edit-button btn btn-link p-0"
+                                data-bs-toggle="modal"
+                                data-bs-target="#editPelangganModal{{ $pelanggan->id_pelanggan }}">
                                 <i class="fas fa-edit"></i> Edit
-                            </a>
+                            </button>
                             <form action="{{ route('pelanggan.destroy', $pelanggan->id_pelanggan) }}" method="POST" class="delete-form">
                                 @csrf
                                 @method('DELETE')
@@ -73,9 +76,9 @@
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label for="edit_nomor_telepon_{{ $pelanggan->id_pelanggan }}" class="form-label">Nomor Telepon <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="edit_nomor_telepon_{{ $pelanggan->id_pelanggan }}" 
-                                               name="nomor_telepon" value="{{ $pelanggan->nomor_telepon }}" required>
+                                        <label for="edit_telp_pelanggan_{{ $pelanggan->id_pelanggan }}" class="form-label">Nomor Telepon <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="edit_telp_pelanggan_{{ $pelanggan->id_pelanggan }}" 
+                                               name="telp_pelanggan" value="{{ $pelanggan->telp_pelanggan }}" required>
                                     </div>
                                     
                                     <div class="mb-3">
@@ -83,18 +86,34 @@
                                         <input type="email" class="form-control" id="edit_email_{{ $pelanggan->id_pelanggan }}" 
                                                name="email" value="{{ $pelanggan->email }}">
                                     </div>
-                                    
+
                                     <div class="mb-3">
-                                        <label for="edit_alamat_{{ $pelanggan->id_pelanggan }}" class="form-label">Alamat</label>
-                                        <textarea class="form-control" id="edit_alamat_{{ $pelanggan->id_pelanggan }}" 
-                                                  name="alamat" rows="3">{{ $pelanggan->alamat }}</textarea>
+                                        <label for="id_kota" class="form-label">Kota <span class="text-danger">*</span></label>
+                                        <select name="id_kota" id="id_kota" class="form-control @error('id_kota') is-invalid @enderror" required>
+                                            <option value="">-- Pilih Kota --</option>
+                                            @foreach($kotas as $kota)
+                                                 <option value="{{ $kota->id_kota }}"
+                                                    {{ (old('id_kota', $pelanggan->id_kota) == $kota->id_kota) ? 'selected' : '' }}>
+                                                    {{ $kota->nama_kota }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                        @error('id_kota')
+                                            <div class="invalid-feedback">{{ $message }}</div>
+                                        @enderror
                                     </div>
                                     
                                     <div class="mb-3">
-                                        <label for="edit_gmaps_{{ $pelanggan->id_pelanggan }}" class="form-label">Link Google Maps</label>
-                                        <input type="url" class="form-control" id="edit_gmaps_{{ $pelanggan->id_pelanggan }}" 
-                                               name="gmaps" placeholder="https://maps.google.com/..."
-                                               value="{{ $pelanggan->gmaps }}">
+                                        <label for="edit_alamat_lokasi_{{ $pelanggan->id_pelanggan }}" class="form-label">Alamat</label>
+                                        <textarea class="form-control" id="edit_alamat_lokasi_{{ $pelanggan->id_pelanggan }}" 
+                                                  name="alamat_lokasi" rows="3">{{ $pelanggan->alamat_lokasi }}</textarea>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <label for="edit_lokasi_gmaps_{{ $pelanggan->id_pelanggan }}" class="form-label">Link Google Maps</label>
+                                        <input type="url" class="form-control" id="edit_lokasi_gmaps_{{ $pelanggan->id_pelanggan }}" 
+                                               name="lokasi_gmaps" placeholder="https://maps.google.com/..."
+                                               value="{{ $pelanggan->lokasi_gmaps }}">
                                     </div>
                                 </div>
                                 <div class="modal-footer">
@@ -153,11 +172,11 @@
                     </div>
                     
                     <div class="mb-3">
-                        <label for="nomor_telepon" class="form-label">Nomor Telepon <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control @error('nomor_telepon') is-invalid @enderror" 
-                               id="nomor_telepon" name="nomor_telepon" 
-                               value="{{ old('nomor_telepon') }}" required>
-                        @error('nomor_telepon')
+                        <label for="telp_pelanggan" class="form-label">Nomor Telepon <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control @error('telp_pelanggan') is-invalid @enderror" 
+                               id="telp_pelanggan" name="telp_pelanggan" 
+                               value="{{ old('telp_pelanggan') }}" required>
+                        @error('telp_pelanggan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -171,31 +190,45 @@
                         @enderror
                     </div>
 
-                    <div class="mb-4">
-                        <label for="id_kota" class="block text-gray-700">Kota</label>
-                        <select name="id_kota" id="id_kota" class="w-full px-3 py-2 border rounded-lg" required>
+                    <div class="mb-3">
+                        <label for="id_kota" class="form-label">Kota <span class="text-danger">*</span></label>
+                        <select name="id_kota" id="id_kota" class="form-control @error('id_kota') is-invalid @enderror" required>
                             <option value="">-- Pilih Kota --</option>
                             @foreach($kotas as $kota)
-                                <option value="{{ $kota->id_kota }}">{{ $kota->nama_kota }}</option>
+                                <option value="{{ $kota->id_kota }}" {{ old('id_kota') == $kota->id_kota ? 'selected' : '' }}>
+                                    {{ $kota->nama_kota }}
+                                </option>
                             @endforeach
                         </select>
+                        @error('id_kota')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
                     </div>
                     
                     <div class="mb-3">
-                        <label for="alamat" class="form-label">Alamat</label>
-                        <textarea class="form-control @error('alamat') is-invalid @enderror" 
-                                  id="alamat" name="alamat" rows="3" required>{{ old('alamat') }}</textarea>
+                        <label for="alamat_lokasi" class="form-label">Alamat</label>
+                        <textarea class="form-control @error('alamat_lokasi') is-invalid @enderror" 
+                                  id="alamat_lokasi" name="alamat_lokasi" rows="3" required>{{ old('alamat_lokasi') }}</textarea>
                         @error('alamat')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
                     
                     <div class="mb-3">
-                        <label for="gmaps" class="form-label">Link Google Maps</label>
-                        <input type="url" class="form-control @error('gmaps') is-invalid @enderror" 
-                               id="gmaps" name="gmaps" placeholder="https://maps.google.com/..."
-                               value="{{ old('gmaps') }}">
-                        @error('gmaps')
+                        <label for="lokasi_gmaps" class="form-label">Link Google Maps</label>
+                        <input type="url" class="form-control @error('lokasi_gmaps') is-invalid @enderror" 
+                               id="lokasi_gmaps" name="lokasi_gmaps" placeholder="https://maps.google.com/..."
+                               value="{{ old('lokasi_gmaps') }}">
+                        @error('lokasi_gmaps')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="catatan" class="form-label">Catatan</label>
+                        <textarea class="form-control @error('catatan') is-invalid @enderror"
+                                id="catatan" name="catatan" rows="2">{{ old('catatan') }}</textarea>
+                        @error('catatan')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -222,7 +255,7 @@ $(document).ready(function() {
     $('#formTambahPelanggan').validate({
         rules: {
             nama_pelanggan: "required",
-            nomor_telepon: {
+            telp_pelanggan: {
                 required: true,
                 minlength: 10,
                 maxlength: 15,
@@ -231,13 +264,13 @@ $(document).ready(function() {
             email: {
                 email: true
             },
-            gmaps: {
+            lokasi_gmaps: {
                 url: true
             }
         },
         messages: {
             nama_pelanggan: "Harap isi nama pelanggan",
-            nomor_telepon: {
+            telp_pelanggan: {
                 required: "Harap isi nomor telepon",
                 minlength: "Nomor telepon minimal 10 digit",
                 maxlength: "Nomor telepon maksimal 15 digit",
@@ -246,7 +279,7 @@ $(document).ready(function() {
             email: {
                 email: "Format email tidak valid"
             },
-            gmaps: {
+            lokasi_gmaps: {
                 url: "Masukkan URL yang valid"
             }
         },
@@ -270,7 +303,7 @@ $(document).ready(function() {
     $('[id^="editPelangganModal"] form').validate({
         rules: {
             nama_pelanggan: "required",
-            nomor_telepon: {
+            telp_pelanggan: {
                 required: true,
                 minlength: 10,
                 maxlength: 15,
@@ -279,13 +312,13 @@ $(document).ready(function() {
             email: {
                 email: true
             },
-            gmaps: {
+            lokasi_gmaps: {
                 url: true
             }
         },
         messages: {
             nama_pelanggan: "Harap isi nama pelanggan",
-            nomor_telepon: {
+            telp_pelanggan: {
                 required: "Harap isi nomor telepon",
                 minlength: "Nomor telepon minimal 10 digit",
                 maxlength: "Nomor telepon maksimal 15 digit",
@@ -294,7 +327,7 @@ $(document).ready(function() {
             email: {
                 email: "Format email tidak valid"
             },
-            gmaps: {
+            lokasi_gmaps: {
                 url: "Masukkan URL yang valid"
             }
         },
