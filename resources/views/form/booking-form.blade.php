@@ -5,8 +5,8 @@
         <meta name="csrf-token" content="{{ csrf_token() }}">
         <title>Klinplus | Booking Form</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-        <script src="//unpkg.com/alpinejs" defer></script>
+        @vite(['resources/css/app-booking-form.css', 'resources/js/app.js'])
+        {{-- <script src="//unpkg.com/alpinejs" defer></script> --}}
         <style>[x-cloak] { display: none !important; }</style>
     </head>
 
@@ -23,7 +23,7 @@
             <h2 class="mb-8">Booking Order Form</h2>
 
 
-            <form method="POST" action="{{ route('booking-form') }}" x-ref="bookingForm" @submit.prevent="submitForm" @keydown.enter.prevent>
+            <form method="POST" action="{{ route('booking.form.submit') }}" x-ref="bookingForm" @submit.prevent="submitForm" @keydown.enter.prevent>
                 @csrf
 
                 {{-- Form Informasi Personal --}}

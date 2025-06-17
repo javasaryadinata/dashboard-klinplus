@@ -27,6 +27,9 @@ Route::get('orders/{order}/detail', [OrderController::class, 'show'])->name('ord
 Route::post('orders/{order}/approve', [OrderController::class, 'approve'])->name('orders.approve');
 Route::post('orders/{order}/update-layanan', [OrderController::class, 'updateLayanan'])->name('orders.updateLayanan');
 
+Route::get('/booking-form', [BookingFormController::class, 'showBookingForm'])->name('booking.form');
+Route::post('/booking-form', [BookingFormController::class, 'storeBooking'])->name('booking.form.submit');
+
 Route::get('/promo/check', [BookingFormController::class, 'checkPromo'])->name('promo.check');
 
 Route::get('/jadwal', function () {

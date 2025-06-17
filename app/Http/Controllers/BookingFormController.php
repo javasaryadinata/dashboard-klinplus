@@ -79,6 +79,26 @@ class BookingFormController extends Controller
     //     return $pelanggan->id_pelanggan;
     // }
 
+    public function checkPromo(Request $request)
+    {
+        $kode = $request->query('kode');
+        $promo = \App\Models\Promo::whereRaw('LOWER(kode) = ?', [strtolower($kode)])->first();
+
+        if ($promo) {
+            return response()->json([
+                'valid' => true,
+                'diskon' => $promo->diskon,
+                'message' => 'Kode promo valid'
+            ]);
+        } else {
+            return response()->json([
+                'valid' => false,
+                'diskon' => 0,
+                'message' => 'Kode promo tidak ditemukan.'
+            ], 404);
+        }
+    }
+
     public function storeBooking(Request $request)
     {
         $validator = Validator::make($request->all(), [
