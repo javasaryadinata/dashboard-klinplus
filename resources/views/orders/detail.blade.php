@@ -7,6 +7,7 @@
 @section('content')
 
 <div class="detail-table">
+
     <!-- Customer Information Section -->
     <div class="row align-items-center mb-3">
         <label class="col-md-2 col-form-label fw-semibold text-dark">ID Order</label>
@@ -25,24 +26,22 @@
     <div class="row align-items-center mb-3">
         <label class="col-md-2 col-form-label fw-semibold text-dark">Alamat :</label>
         <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->alamat ?? '-' }}" readonly>
-        </div>
-    </div>
-
-    <!-- Cleaning Schedule Section -->
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Tanggal Pembersihan :</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" 
-                   value="{{ $order->tanggal_pembersihan }} {{ $order->waktu_pembersihan }}" readonly>
+            <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->alamat_lokasi ?? '-' }}" readonly>
         </div>
     </div>
 
     <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Jam Pembersihan :</label>
+        <label class="col-md-2 col-form-label fw-semibold text-dark">Tanggal Pengerjaan :</label>
         <div class="col-md-10">
             <input type="text" class="form-control bg-light text-dark" 
-                   value="{{ \Carbon\Carbon::parse($order->waktu_pembersihan)->format('H:i') }}" readonly>
+                   value="{{ $order->tanggal_pengerjaan }}" readonly>
+        </div>
+    </div>
+
+    <div class="row align-items-center mb-3">
+        <label class="col-md-2 col-form-label fw-semibold text-dark">Jam Pengerjaan :</label>
+        <div class="col-md-10">
+            <input type="text" class="form-control bg-light text-dark" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }} WIB" readonly>
         </div>
     </div>
 </div>
@@ -50,7 +49,6 @@
 <hr>
 
 <!-- Services Section -->
-
 <form method="POST" action="{{ route('orders.updateLayanan', $order->id_order) }}">
     @csrf
     <div class="btn-detail-layanan">
@@ -64,33 +62,42 @@
             <table class="table" id="layananOrderTable">
                 <thead class="table-light">
                     <tr>
-                        <th>Kode Layanan</th>
+                        <th>No</th>
                         <th>Nama Layanan</th>
-                        <th>Estimasi Selesai</th>
+                        <th>Durasi (Menit)</th>
                         <th>Nama Petugas</th>
-                        <th>Sub Total</th>
+                        <th>Harga</th>
                         <th>Action</th>
                     </tr>  
                 </thead>
                 <tbody>
-                    @foreach($order->layanans as $layanan)
-                    <tr data-layanan-id="{{ $layanan->id_layanan }}">
-                        <td>{{ $layanan->pricelist->id_pricelist }}</td>
-                        <td>{{ $layanan->pricelist->nama_layanan ?? $layanan->nama_layanan }}</td>
-                        <td>{{ $layanan->pivot->estimasi_selesai }}</td>
+                    @foreach($order->orderDetails as $detail)
+                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}">
+                        <td>{{ $loop->iteration }}</td>
                         <td>
-                            @if($layanan->pivot->petugas)
-                                {{ $layanan->pivot->petugas }} - {{ $layanan->pivot->nama_petugas }}
+                            {{ 
+                                ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') 
+                                . ' - ' . 
+                                ($detail->layananSubkategori->nama_subkategori ?? '-') 
+                            }}
+                        </td>
+                        <td>
+                            <input type="number" class="form-control durasi-input" name="durasi[]" min="1"
+                            value="{{ $detail->layananSubkategori->durasi ?? 60 }}" style="width:80px;">
+                        </td>
+                        <td>
+                            @if($detail->petugas)
+                                {{ $detail->petugas->id_petugas }} - {{ $detail->petugas->nama_petugas }}
                             @else
                                 -
                             @endif
                         </td>
-                        <td>Rp{{ number_format($layanan->pivot->subtotal, 0, ',', '.') }}</td>
+                        <td>Rp{{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
-                                data-layanan-id="{{ $layanan->id_layanan }}"
-                                data-current-petugas="{{ $layanan->pivot->petugas ?? '' }}"
-                                data-current-nama-petugas="{{ $layanan->pivot->nama_petugas ?? '' }}">
+                                data-layanan-id="{{ $detail->id_layanan_subkategori }}"
+                                data-current-petugas="{{ $detail->petugas ?? '' }}"
+                                data-current-nama-petugas="{{ $detail->nama_petugas ?? '' }}">
                                 Edit Petugas
                             </button>
                             <button type="button" class="btn btn-sm btn-danger btn-delete">Hapus</button>
@@ -104,52 +111,51 @@
 
     <!-- Hidden inputs container dengan data awal -->
     <div id="hiddenInputsContainer">
-        @foreach($order->layanans as $layanan)
-        <div class="hidden-input-wrapper" data-layanan-id="{{ $layanan->id_layanan }}">
-            <input type="hidden" name="layanans[]" value="{{ $layanan->id_layanan }}">
-            <input type="hidden" name="subtotals[]" value="{{ $layanan->pivot->subtotal }}">
-            <input type="hidden" name="estimasi_selesais[]" value="{{ $layanan->pivot->estimasi_selesai }}">
-            <input type="hidden" name="petugas[]" value="{{ $layanan->pivot->petugas ?? '' }}">
-            <input type="hidden" name="nama_petugas[]" value="{{ $layanan->pivot->nama_petugas ?? '' }}">
-        </div>
+        @foreach($order->orderDetails as $detail)
+            <div class="hidden-input-wrapper" data-layanan-id="{{ $detail->id_layanan_subkategori }}">
+                <input type="hidden" name="layanans[]" value="{{ $detail->id_layanan_subkategori }}">
+                <input type="hidden" name="subtotals[]" value="{{ $detail->subtotal ?? $detail->harga }}">
+                <input type="hidden" name="durasi_layanan[]" value="{{ $detail->layananSubkategori->durasi ?? 60 }}">
+                <input type="hidden" name="petugas[]" value="{{ $detail->id_petugas ?? '' }}">
+                {{-- <input type="hidden" name="nama_petugas[]" value="{{ $detail->nama_petugas ?? '' }}"> --}}
+            </div>
         @endforeach
     </div>
 
     <!-- Order Summary Section -->
     <div class="detail-table">
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Estimasi (Menit) :</label>
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Total Durasi :</label>
             <div class="col-md-10">
-                <input type="text" class="form-control bg-light text-dark"
-                    value="{{ $order->layanans->sum('durasi') }}" readonly>
+                <input type="text" id="estimasi-durasi" class="form-control bg-light text-dark" value="0" readonly>
             </div>
         </div>
         
         <div class="row align-items-center mb-3">
             <label class="col-md-2 col-form-label fw-semibold text-dark">Jam Selesai :</label>
             <div class="col-md-10">
-                @php
-                    $totalDurasi = $order->layanans->sum('durasi');
-                    $jamMulai = \Carbon\Carbon::parse($order->waktu_pembersihan);
-                    $jamSelesai = $jamMulai->addMinutes($totalDurasi);
-                @endphp
-                <input type="text" class="form-control bg-light text-dark" value="{{ $jamSelesai->format('H:i') }}" readonly>
+                 <input type="text" id="jam-selesai" class="form-control bg-light text-dark" value="" readonly>
             </div>
         </div>
         
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Diskon (Rp) :</label>
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Diskon :</label>
             <div class="col-md-10">
                 <input type="text" class="form-control bg-light text-dark" 
-                       value="Rp{{ number_format($order->diskon, 0, ',', '.') }}" readonly>
+                       value="Rp {{ number_format($order->diskon, 0, ',', '.') }}" readonly>
             </div>
         </div>
         
         <div class="row align-items-center mb-3">
             <label class="col-md-2 col-form-label fw-semibold text-dark">Total Harga :</label>
             <div class="col-md-10">
+                @php
+                    $totalHarga = $order->orderDetails->sum(function($detail) {
+                        return $detail->subtotal ?? $detail->harga;
+                    });
+                @endphp
                 <input type="text" class="form-control bg-light text-dark" 
-                       value="Rp{{ number_format($order->layanans->sum('pivot.subtotal') - $order->diskon, 0, ',', '.') }}" readonly>
+                    value="Rp {{ number_format($totalHarga - $order->diskon, 0, ',', '.') }}" readonly>
             </div>
         </div>
        
@@ -204,33 +210,23 @@
                         <option value="" selected disabled>-- Pilih Layanan --</option>
                         @foreach($layanans as $layanan)
                             <option 
-                                value="{{ $layanan->id_layanan }}"
-                                data-kode="{{ $layanan->id_pricelist }}"
-                                data-nama="{{ $layanan->nama_layanan }}"
+                                value="{{ $layanan->id }}"
+                                data-kode="{{ $layanan->id }}"
+                                data-nama="{{ $layanan->rootKategori->nama_rootkategori ?? '-' . ' - ' . $layanan->nama_subkategori }}"
                                 data-harga="{{ $layanan->harga }}"
-                                data-durasi="{{ $layanan->durasi }}">
-                                {{ $layanan->nama_layanan }} | Rp{{ number_format($layanan->harga, 0, ',', '.') }}
+                                data-durasi="{{ $layanan->durasi ?? 0 }}">
+                                {{ ($layanan->rootKategori->nama_rootkategori ?? '-') . ' - ' . $layanan->nama_subkategori }} | Rp{{ number_format($layanan->harga, 0, ',', '.') }}
                             </option>
                         @endforeach
                     </select>
                 </div>
 
-                <div class="mb-3">
-                    <label for="kode_layanan" class="form-label">Kode Layanan</label>
-                    <input type="text" class="form-control" id="kode_layanan" readonly>
-                </div>
-
-                <div class="mb-3">
-                    <label for="qty" class="form-label">Qty</label>
-                    <input type="number" class="form-control" id="qty" value="1" min="1">
-                </div>
-
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <label for="jam_mulai" class="form-label">Jam Mulai</label>
-                    <input type="time" class="form-control" id="jam_mulai" value="{{ \Carbon\Carbon::parse($order->waktu_pembersihan)->format('H:i') }}" readonly>
-                </div>
+                    <input type="time" class="form-control" id="jam_mulai" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" readonly>
+                </div> --}}
 
-                <div class="mb-3">
+                {{-- <div class="mb-3">
                     <label for="estimasi_selesai" class="form-label">Estimasi Selesai</label>
                     <input type="time" class="form-control" id="estimasi_selesai" readonly>
                 </div>
@@ -238,7 +234,7 @@
                 <div class="mb-3">
                     <label for="subtotal" class="form-label">Sub Total</label>
                     <input type="text" class="form-control" id="subtotal" readonly>
-                </div>
+                </div> --}}
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
@@ -286,11 +282,11 @@
 document.addEventListener('DOMContentLoaded', function () {
     const elements = {
         layananSelect: document.getElementById('layanan_id'),
-        kodeLayananInput: document.getElementById('kode_layanan'),
-        qtyInput: document.getElementById('qty'),
+        // kodeLayananInput: document.getElementById('kode_layanan'),
+        // qtyInput: document.getElementById('qty'),
         jamMulaiInput: document.getElementById('jam_mulai'),
-        estimasiInput: document.getElementById('estimasi_selesai'),
-        subtotalInput: document.getElementById('subtotal'),
+        // estimasiInput: document.getElementById('estimasi_selesai'),
+        // subtotalInput: document.getElementById('subtotal'),
         saveBtn: document.getElementById('saveLayananBtn'),
         tableBody: document.querySelector('#layananOrderTable tbody'),
         hiddenInputsContainer: document.getElementById('hiddenInputsContainer'),
@@ -306,38 +302,38 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     // Fungsi untuk mengupdate estimasi dan subtotal
-    function updateEstimasiDanSubtotal() {
-        const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
-        if (!selectedOption || selectedOption.disabled) {
-            elements.kodeLayananInput.value = '';
-            elements.estimasiInput.value = '';
-            elements.subtotalInput.value = '';
-            return;
-        }
+    // function updateEstimasiDanSubtotal() {
+    //     const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
+    //     if (!selectedOption || selectedOption.disabled) {
+    //         elements.kodeLayananInput.value = '';
+    //         elements.estimasiInput.value = '';
+    //         elements.subtotalInput.value = '';
+    //         return;
+    //     }
 
-        const kode = selectedOption.getAttribute('data-kode');
-        const harga = parseInt(selectedOption.getAttribute('data-harga')) || 0;
-        const durasi = parseInt(selectedOption.getAttribute('data-durasi')) || 0;
-        const qty = parseInt(elements.qtyInput.value) || 1;
+    //     const kode = selectedOption.getAttribute('data-kode');
+    //     const harga = parseInt(selectedOption.getAttribute('data-harga')) || 0;
+    //     const durasi = parseInt(selectedOption.getAttribute('data-durasi')) || 0;
+    //     const qty = parseInt(elements.qtyInput.value) || 1;
 
-        elements.kodeLayananInput.value = kode;
-        const subtotal = harga * qty;
-        elements.subtotalInput.value = 'Rp' + subtotal.toLocaleString('id-ID');
+    //     elements.kodeLayananInput.value = kode;
+    //     const subtotal = harga * qty;
+    //     elements.subtotalInput.value = 'Rp' + subtotal.toLocaleString('id-ID');
 
-        if (elements.jamMulaiInput.value && durasi > 0) {
-            const [jam, menit] = elements.jamMulaiInput.value.split(':').map(Number);
-            const totalMenit = jam * 60 + menit + (durasi * qty);
-            const hasilJam = String(Math.floor(totalMenit / 60)).padStart(2, '0');
-            const hasilMenit = String(totalMenit % 60).padStart(2, '0');
-            elements.estimasiInput.value = `${hasilJam}:${hasilMenit}`;
-        } else {
-            elements.estimasiInput.value = '';
-        }
-    }
+    //     if (elements.jamMulaiInput.value && durasi > 0) {
+    //         const [jam, menit] = elements.jamMulaiInput.value.split(':').map(Number);
+    //         const totalMenit = jam * 60 + menit + (durasi * qty);
+    //         const hasilJam = String(Math.floor(totalMenit / 60)).padStart(2, '0');
+    //         const hasilMenit = String(totalMenit % 60).padStart(2, '0');
+    //         elements.estimasiInput.value = `${hasilJam}:${hasilMenit}`;
+    //     } else {
+    //         elements.estimasiInput.value = '';
+    //     }
+    // }
 
     // Event listeners untuk update estimasi dan subtotal
-    elements.layananSelect.addEventListener('change', updateEstimasiDanSubtotal);
-    elements.qtyInput.addEventListener('change', updateEstimasiDanSubtotal);
+    // elements.layananSelect.addEventListener('change', updateEstimasiDanSubtotal);
+    // elements.qtyInput.addEventListener('change', updateEstimasiDanSubtotal);
 
     // Handle petugas selection change
     elements.petugasSelect.addEventListener('change', function() {
@@ -349,40 +345,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Fungsi untuk mengupdate total durasi dan jam selesai
     function updateTotalDurasiDanJamSelesai() {
-        const rows = elements.tableBody.querySelectorAll('tr');
         let totalDurasi = 0;
-        
-        // Hitung total durasi
-        rows.forEach(row => {
-            const estimasiText = row.cells[2].textContent;
-            if (estimasiText) {
-                const [jam, menit] = estimasiText.split(':').map(Number);
-                const jamMulai = elements.jamMulaiInput.value;
-                const [jamMulaiH, jamMulaiM] = jamMulai.split(':').map(Number);
-                
-                // Hitung durasi dalam menit
-                const totalMenitMulai = jamMulaiH * 60 + jamMulaiM;
-                const totalMenitSelesai = jam * 60 + menit;
-                const durasi = totalMenitSelesai - totalMenitMulai;
-                
-                totalDurasi += durasi > 0 ? durasi : 0;
-            }
+        document.querySelectorAll('.durasi-input').forEach(input => {
+            totalDurasi += parseInt(input.value) || 0;
         });
-        
-        // Update estimasi menit
-        document.querySelector('input[name="estimasi_menit"]').value = totalDurasi;
-        
-        // Update jam selesai
-        if (elements.jamMulaiInput.value && totalDurasi > 0) {
-            const [jam, menit] = elements.jamMulaiInput.value.split(':').map(Number);
+
+        // Update estimasi durasi
+        document.getElementById('estimasi-durasi').value = totalDurasi + ' Menit';
+
+        // Hitung jam selesai
+        const jamMulai = "{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}";
+        if (jamMulai) {
+            const [jam, menit] = jamMulai.split(':').map(Number);
             const totalMenit = jam * 60 + menit + totalDurasi;
             const hasilJam = String(Math.floor(totalMenit / 60)).padStart(2, '0');
             const hasilMenit = String(totalMenit % 60).padStart(2, '0');
-            document.querySelector('input[name="jam_selesai"]').value = `${hasilJam}:${hasilMenit}`;
+            document.getElementById('jam-selesai').value = `${hasilJam}:${hasilMenit} WIB`;
         }
     }
+
+        // Trigger update saat durasi diubah
+    document.querySelectorAll('.durasi-input').forEach(input => {
+        input.addEventListener('input', updateTotalDurasiDanJamSelesai);
+    });
+
+    // Inisialisasi pertama
+    updateTotalDurasiDanJamSelesai();
 
     // Fungsi untuk mengupdate total harga
     function updateTotalHarga() {
@@ -395,15 +384,24 @@ document.addEventListener('DOMContentLoaded', function () {
         });
         
         // Kurangi diskon jika ada
-        const diskonText = document.querySelector('input[name="diskon"]').value.replace(/\D/g, '');
-        const diskon = parseInt(diskonText) || 0;
+        const diskon = {{ $order->diskon ?? 0 }};
         const totalSetelahDiskon = Math.max(0, totalHarga - diskon);
         
         // Update total harga
-        document.querySelector('input[name="total_harga"]').value = 'Rp' + totalSetelahDiskon.toLocaleString('id-ID');
+        const totalHargaInput = document.querySelector('input[name="total_harga"]');
+        if (totalHargaInput) {
+            totalHargaInput.value = 'Rp ' + totalSetelahDiskon.toLocaleString('id-ID');
+        }
     }
 
-    // Handle save service button
+    function updateTableNumbering() {
+        const rows = elements.tableBody.querySelectorAll('tr');
+        rows.forEach((row, idx) => {
+            row.cells[0].textContent = idx + 1;
+        });
+    }
+
+    // Handle Tombol Tambah Layanan
     elements.saveBtn.addEventListener('click', function() {
         const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
         const isEditMode = elements.editModeInput.value === '1';
@@ -414,25 +412,33 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         const layananId = selectedOption.value;
-        const kodeLayanan = elements.kodeLayananInput.value;
+        // const kodeLayanan = elements.kodeLayananInput.value;
         const namaLayanan = selectedOption.getAttribute('data-nama');
-        const estimasiSelesai = elements.estimasiInput.value;
-        const subtotal = parseInt(elements.subtotalInput.value.replace(/\D/g, '')) || 0;
-        const qty = parseInt(elements.qtyInput.value) || 1;
+        // const estimasiSelesai = elements.estimasiInput.value;
+        // const subtotal = parseInt(elements.subtotalInput.value.replace(/\D/g, '')) || 0;
+        // const qty = parseInt(elements.qtyInput.value) || 1;
+        const harga = selectedOption.getAttribute('data-harga') || 0;
 
-        if (!estimasiSelesai || subtotal <= 0) {
-            alert("Data tidak valid. Silakan periksa kembali.");
+        // if (!estimasiSelesai || subtotal <= 0) {
+        //     alert("Data tidak valid. Silakan periksa kembali.");
+        //     return;
+        // }
+
+        // Cek duplikasi
+        const existingRow = elements.tableBody.querySelector(`tr[data-layanan-id="${layananId}"]`);
+        if (existingRow && !isEditMode) {
+            alert("Layanan ini sudah ditambahkan.");
             return;
         }
 
         const newRow = document.createElement('tr');
         newRow.dataset.layananId = layananId;
         newRow.innerHTML = `
-            <td>${kodeLayanan}</td>
+            <td></td>
             <td>${namaLayanan}</td>
-            <td>${estimasiSelesai}</td>
+            <td><input type="number" class="form-control durasi-input" name="durasi[]" min="1" value="60" style="width:80px;"></td>
             <td>-</td>
-            <td>Rp${subtotal.toLocaleString('id-ID')}</td>
+            <td>Rp${parseInt(harga).toLocaleString('id-ID')}</td>
             <td>
                 <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
                     data-layanan-id="${layananId}"
@@ -444,30 +450,22 @@ document.addEventListener('DOMContentLoaded', function () {
             </td>
         `;
         
-        if (isEditMode) {
-            const existingRow = elements.tableBody.querySelector(`tr[data-layanan-id="${elements.currentLayananIdInput.value}"]`);
-            if (existingRow) {
-                existingRow.replaceWith(newRow);
-            }
+        if (isEditMode && existingRow) {
+            existingRow.replaceWith(newRow);
         } else {
-            const existingRow = elements.tableBody.querySelector(`tr[data-layanan-id="${layananId}"]`);
-            if (existingRow) {
-                alert("Layanan ini sudah ditambahkan.");
-                return;
-            }
             elements.tableBody.appendChild(newRow);
         }
+        updateTableNumbering();
 
         // Update hidden inputs
         const inputWrapper = document.createElement('div');
         inputWrapper.classList.add('hidden-input-wrapper');
         inputWrapper.dataset.layananId = layananId;
+        // <input type="hidden" name="estimasi_selesais[]" value=""> posisi digunakan: setelah subtotals
         inputWrapper.innerHTML = `
             <input type="hidden" name="layanans[]" value="${layananId}">
-            <input type="hidden" name="subtotals[]" value="${subtotal}">
-            <input type="hidden" name="estimasi_selesais[]" value="${estimasiSelesai}">
+            <input type="hidden" name="subtotals[]" value="${harga}">
             <input type="hidden" name="petugas[]" value="">
-            <input type="hidden" name="nama_petugas[]" value="">
         `;
         
         if (isEditMode) {
@@ -480,18 +478,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         // Update summary
-        updateTotalDurasiDanJamSelesai();
-        updateTotalHarga();
+        // updateTotalDurasiDanJamSelesai();
+        // updateTotalHarga();
 
         // Reset modal
         elements.editModeInput.value = '0';
         elements.currentLayananIdInput.value = '';
         elements.layananSelect.selectedIndex = 0;
-        elements.layananSelect.disabled = false;
-        elements.qtyInput.value = 1;
-        elements.kodeLayananInput.value = '';
-        elements.estimasiInput.value = '';
-        elements.subtotalInput.value = '';
+        // elements.layananSelect.disabled = false;
+        // elements.qtyInput.value = 1;
+        // elements.kodeLayananInput.value = '';
+        // elements.estimasiInput.value = '';
+        // elements.subtotalInput.value = '';
+        updateTableNumbering();
+        syncHiddenInputsWithTable();
         elements.modal.hide();
     });
 
@@ -507,13 +507,37 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (hiddenWrapper) {
                     hiddenWrapper.remove();
                 }
-
+                updateTableNumbering();
                 // Update summary
-                updateTotalDurasiDanJamSelesai();
+                // updateTotalDurasiDanJamSelesai();
                 updateTotalHarga();
+                updateTableNumbering();
+                syncHiddenInputsWithTable();
             }
         }
     });
+
+    function syncHiddenInputsWithTable() {
+        elements.hiddenInputsContainer.innerHTML = '';
+        const rows = elements.tableBody.querySelectorAll('tr');
+        rows.forEach(row => {
+            const layananId = row.dataset.layananId;
+            const durasi = row.cells[2].querySelector('input') ? row.cells[2].querySelector('input').value : '';
+            const petugasText = row.cells[3].textContent.trim();
+            const petugasId = row.dataset.petugasId || '';
+            const harga = row.cells[4].textContent.replace('Rp', '').replace(/\./g, '').replace(/ /g, '') || 0;
+            const wrapper = document.createElement('div');
+            wrapper.classList.add('hidden-input-wrapper');
+            wrapper.dataset.layananId = layananId;
+            wrapper.innerHTML = `
+                <input type="hidden" name="layanans[]" value="${layananId}">
+                <input type="hidden" name="durasi_layanan[]" value="${durasi}">
+                <input type="hidden" name="subtotals[]" value="${harga}">
+                <input type="hidden" name="petugas[]" value="${petugasId}">
+            `;
+            elements.hiddenInputsContainer.appendChild(wrapper);
+        });
+    }
 
     // Handle Edit Petugas button
     document.addEventListener('click', function(e) {
@@ -538,6 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             
             elements.editPetugasModal.show();
+            syncHiddenInputsWithTable();
         }
     });
 
@@ -559,7 +584,8 @@ document.addEventListener('DOMContentLoaded', function () {
         const row = document.querySelector(`tr[data-layanan-id="${layananId}"]`);
         if (row) {
             row.cells[3].textContent = displayText;
-            
+            row.dataset.petugasId = petugasId;
+            row.dataset.namaPetugas = namaPetugas;
             // Update button data attributes
             const editBtn = row.querySelector('.btn-edit-petugas');
             if (editBtn) {
@@ -572,29 +598,16 @@ document.addEventListener('DOMContentLoaded', function () {
         const wrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
         if (wrapper) {
             let petugasInput = wrapper.querySelector('input[name="petugas[]"]');
-            let namaPetugasInput = wrapper.querySelector('input[name="nama_petugas[]"]');
-            
             if (!petugasInput) {
                 petugasInput = document.createElement('input');
                 petugasInput.type = 'hidden';
                 petugasInput.name = 'petugas[]';
                 wrapper.appendChild(petugasInput);
             }
-            
-            if (!namaPetugasInput) {
-                namaPetugasInput = document.createElement('input');
-                namaPetugasInput.type = 'hidden';
-                namaPetugasInput.name = 'nama_petugas[]';
-                wrapper.appendChild(namaPetugasInput);
-            }
-            
             petugasInput.value = petugasId;
-            namaPetugasInput.value = namaPetugas;
         }
-        
         elements.editPetugasModal.hide();
     });
 });
 </script>
-
 @endsection

@@ -13,7 +13,7 @@
     </div>
 </div>
 @if(session('success'))
-<div class="alert alert-success">{{ session('success') }}</div>
+<div class="alert alert-success" id="order-success-alert">{{ session('success') }}</div>
 @endif
 <div class="container-table">
     <div class="table-wrapper">
@@ -26,8 +26,9 @@
                     <th>Nama Pelanggan</th>
                     <th>Alamat</th>
                     <th>Gmaps</th>
-                    <th>Tanggal Pembersihan</th>
-                    <th>Waktu Pembersihan</th>
+                    <th>Catatan</th>
+                    <th>Tanggal Pengerjaan</th>
+                    <th>Waktu Pengerjaan</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -52,16 +53,17 @@
                     </td>
                     <td>{{ $order->id_order }}</td>
                     <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
-                    <td>{{ $order->pelanggan->alamat ?? '-' }}</td>
+                    <td>{{ $order->pelanggan->alamat_lokasi ?? '-' }}</td>
                     <td>
-                        @if($order->pelanggan->gmaps ?? false)
-                            <a href="{{ $order->pelanggan->gmaps }}" target="_blank">Lihat</a>
+                        @if($order->pelanggan->lokasi_gmaps ?? false)
+                            <a href="{{ $order->pelanggan->lokasi_gmaps }}" target="_blank">Lihat</a>
                         @else
                             -
                         @endif
                     </td>
-                    <td>{{ $order->tanggal_pembersihan }}</td>
-                    <td>{{ $order->waktu_pembersihan }}</td>
+                    <td>{{ $order->catatan ?? '-' }}</td>
+                    <td>{{ $order->tanggal_pengerjaan }}</td>
+                    <td>{{ \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan)->format('H:i') }} WIB</td>
                     <td>
                         <div class="d-flex flex-wrap gap-1 justify-content-start">
                             <a href="{{ route('orders.detail', $order->id_order) }}" class="btn-info">
@@ -112,36 +114,75 @@
                 <div class="mb-3">
                     <label for="id_pelanggan" class="form-label">Pilih Pelanggan</label>
                     <select class="form-select" id="id_pelanggan" name="id_pelanggan" required>
-                        <option value="" selected disabled>-- Pilih Pelanggan --</option>
-                        @foreach($pelanggan as $pelanggan)
+                        <option value="" selected disabled>Pilih Pelanggan</option>
+                        @foreach($pelanggans as $pelanggan)
                         <option 
                             value="{{ $pelanggan->id_pelanggan }}"
-                            data-alamat="{{ $pelanggan->alamat }}"
-                            data-gmaps="{{ $pelanggan->gmaps ?? '' }}">
-                            {{ $pelanggan->nama_pelanggan }} | {{ $pelanggan->alamat }}
+                            data-alamat="{{ $pelanggan->alamat_lokasi }}"
+                            data-gmaps="{{ $pelanggan->lokasi_gmaps ?? '' }}">
+                            {{ $pelanggan->nama_pelanggan }} - {{ $pelanggan->alamat_lokasi }}
                         </option>
                         @endforeach
                     </select>
                 </div>
 
                 <div class="mb-3">
-                    <label for="inputAlamat" class="form-label">Alamat</label>
-                    <input type="text" class="form-control" id="inputAlamat" name="alamat" readonly>
+                    <label for="input_alamat_lokasi" class="form-label">Alamat</label>
+                    <input type="text" class="form-control" id="input_alamat_lokasi" name="alamat_lokasi" readonly>
                 </div>
                 
                 <div class="mb-3">
-                    <label for="inputGmaps" class="form-label">Gmaps</label>
-                    <input type="text" class="form-control" id="inputGmaps" name="gmaps" readonly>
+                    <label for="input_lokasi_gmaps" class="form-label">Gmaps</label>
+                    <input type="text" class="form-control" id="input_lokasi_gmaps" name="lokasi_gmaps" readonly>
+                </div>
+
+                <div class="mb-3">
+                    <label for="input_catatan" class="form-label">Catatan</label>
+                    <textarea class="form-control" id="input_catatan" name="catatan" rows="2"></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Layanan</label>
+                    <div id="layanan-container">
+                        <div class="row layanan-row mb-2">
+                            <div class="col-7">
+                                <select name="layanan_subkategori[]" class="form-select layanan-select" required>
+                                    <option value="" disabled selected>Pilih Layanan</option>
+                                    @foreach(\App\Models\LayananSubkategori::with('rootKategori')->get() as $layanan)
+                                        <option value="{{ $layanan->id }}" data-harga="{{ $layanan->harga }}">
+                                            {{ $layanan->rootKategori->nama_rootkategori ?? '' }} - {{ $layanan->nama_subkategori }} (Rp{{ number_format($layanan->harga,0,',','.') }})
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-2">
+                                <button type="button" class="btn btn-danger btn-remove-layanan" style="display:none;">Hapus</button>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-success btn-add-layanan mt-2">Tambah Layanan</button>
+                </div>
+
+                <div class="mb-3">
+                    <label for="input_kode" class="form-label">Kode Diskon</label>
+                    <input type="text" class="form-control" id="input_kode" name="kode" maxlength="20">
+                    <div class="mt-2" id="diskon-msg"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="input_total_harga" class="form-label">Total Harga</label>
+                    <input type="number" class="form-control" id="input_total_harga" name="total_harga" readonly required>
                 </div>
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label for="tanggal_pembersihan" class="form-label">Tanggal Pembersihan</label>
-                        <input type="date" class="form-control" id="tanggal_pembersihan" name="tanggal_pembersihan" required>
+                        <label for="input_tanggal_pengerjaan" class="form-label">Tanggal Pengerjaan</label>
+                        <input type="date" class="form-control" id="input_tanggal_pengerjaan" name="tanggal_pengerjaan" required>
                     </div>
+
                     <div class="col-md-6 mb-3">
-                        <label for="waktu_pembersihan" class="form-label">Waktu Pembersihan</label>
-                        <input type="time" class="form-control" id="waktu_pembersihan" name="waktu_pembersihan" required>
+                        <label for="input_jam_pengerjaan" class="form-label">Waktu Pengerjaan</label>
+                        <input type="time" class="form-control" id="input_jam_pengerjaan" name="jam_pengerjaan" required>
                     </div>
                 </div>
               </div>
@@ -158,9 +199,18 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const alert = document.getElementById('order-success-alert');
+    if (alert) {
+        setTimeout(() => {
+            alert.style.transition = 'opacity 0.5s';
+            alert.style.opacity = 0;
+            setTimeout(() => alert.remove(), 500);
+        }, 3000); // 3 detik
+    }
+
     const pelangganSelect = document.getElementById('id_pelanggan');
-    const alamatInput = document.getElementById('inputAlamat');
-    const gmapsInput = document.getElementById('inputGmaps');
+    const alamatInput = document.getElementById('input_alamat_lokasi');
+    const gmapsInput = document.getElementById('input_lokasi_gmaps');
 
     function isiAlamatOtomatis() {
         const selectedOption = pelangganSelect.options[pelangganSelect.selectedIndex];
@@ -179,10 +229,46 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    const layananContainer = document.getElementById('layanan-container');
+    const btnAddLayanan = document.querySelector('.btn-add-layanan');
+
+    function updateRemoveButtons() {
+        const rows = layananContainer.querySelectorAll('.layanan-row');
+        rows.forEach((row, idx) => {
+            const btn = row.querySelector('.btn-remove-layanan');
+            btn.style.display = rows.length > 1 ? '' : 'none';
+        });
+    }
+    
+    // Tambah layanan dinamis
+    btnAddLayanan.addEventListener('click', function() {
+        const row = layananContainer.querySelector('.layanan-row');
+        const clone = row.cloneNode(true);
+        clone.querySelector('.layanan-select').selectedIndex = 0;
+        layananContainer.appendChild(clone);
+        setHargaOtomatis(clone);
+        updateRemoveButtons();
+        hitungTotalHarga();
+    });
+
+    layananContainer.addEventListener('click', function(e) {
+        if (e.target.classList.contains('btn-remove-layanan')) {
+            e.target.closest('.layanan-row').remove();
+            updateRemoveButtons();
+            hitungTotalHarga();
+        }
+    });
+
+    layananContainer.addEventListener('input', function(e) {
+        if (e.target.name === 'harga-layanan-input') {
+            hitungTotalHarga();
+        }
+    });
+
     // Fungsi untuk mengisi jam_pembersihan otomatis 1 jam sebelum waktu_pembersihan
     function setJamPembersihanSebelumnya() {
-        const waktuInput = document.getElementById('waktu_pembersihan');
-        const jamSebelumnyaInput = document.getElementById('jam_pembersihan');
+        const waktuInput = document.getElementById('input_jam_pengerjaan');
+        const jamSebelumnyaInput = document.getElementById('jam_pengerjaan_sebelumnya');
 
         waktuInput.addEventListener('input', function () {
             if (!waktuInput.value) {
@@ -201,9 +287,73 @@ document.addEventListener('DOMContentLoaded', function() {
 
             jamSebelumnyaInput.value = `${jam}:${menit}`;
         });
+    };
+
+    // Data promo dari backend
+    const diskonList = {
+        {!! $promos->map(function($promo) {
+            return '"'.strtoupper($promo->kode).'": '.(int)$promo->diskon;
+        })->join(',') !!}
+    };
+
+    const kodeDiskonInput = document.getElementById('input_kode');
+    const totalHargaInput = document.getElementById('input_total_harga');
+    let diskonAktif = 0;
+
+    // Tampilkan pesan validasi diskon
+    let diskonMsg = document.getElementById('diskon-msg');
+    if (!diskonMsg) {
+        diskonMsg = document.createElement('div');
+        diskonMsg.id = 'diskon-msg';
+        diskonMsg.style.fontSize = '0.9em';
+        kodeDiskonInput.parentNode.appendChild(diskonMsg);
     }
 
-    setJamPembersihanSebelumnya();
+    function hitungTotalHarga() {
+        let total = 0;
+        layananContainer.querySelectorAll('.layanan-select').forEach(select => {
+            const harga = select.options[select.selectedIndex]?.getAttribute('data-harga');
+            total += parseInt(harga) || 0;
+        });
+
+        // Kurangi diskon jika ada
+        let totalSetelahDiskon = total;
+        if (diskonAktif > 0) {
+            totalSetelahDiskon = Math.max(0, total - diskonAktif);
+        }
+        totalHargaInput.value = totalSetelahDiskon;
+    }
+
+    // Validasi kode diskon saat input
+    kodeDiskonInput.addEventListener('input', function() {
+        const kode = kodeDiskonInput.value.trim().toUpperCase();
+        if (kode && diskonList[kode]) {
+            diskonAktif = diskonList[kode];
+            diskonMsg.textContent = `Kode valid : -Rp${diskonAktif.toLocaleString('id-ID')}`;
+            diskonMsg.style.color = 'green';
+        } else if (kode) {
+            diskonAktif = 0;
+            diskonMsg.textContent = 'Kode tidak valid';
+            diskonMsg.style.color = 'red';
+        } else {
+            diskonAktif = 0;
+            diskonMsg.textContent = '';
+        }
+        hitungTotalHarga();
+    });
+
+    // Harga otomatis dari pilihan layanan
+    function setHargaOtomatis(row) {
+        const select = row.querySelector('.layanan-select');
+        select.addEventListener('change', function() {
+            hitungTotalHarga();
+        });
+    }
+
+    // Inisialisasi untuk baris pertama
+    document.querySelectorAll('.layanan-row').forEach(row => setHargaOtomatis(row));
+    updateRemoveButtons();
+    hitungTotalHarga();
 });
 </script>
 @endpush

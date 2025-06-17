@@ -495,49 +495,54 @@ body {
 
 /* Order-table Lebar kolom yang dioptimalkan */
 .order-table th:nth-child(1), 
-.order-table td:nth-child(1) {
+.order-table td:nth-child(3) {
     width: 3%; /* Nomor */
 }
 
 .order-table th:nth-child(2), 
 .order-table td:nth-child(2) {
-    width: 10%; /* Id Pelanggan*/
+    width: 8%; /* Status */
 }
 
 .order-table th:nth-child(3), 
 .order-table td:nth-child(3) {
-    width: 16%; /* Nama Pelanggan */
+    width: 10%; /* ID Order */
 }
 
 .order-table th:nth-child(4), 
 .order-table td:nth-child(4) {
-    width: 12%; /* Nomor Telepon */
+    width: 14%; /* Nama Pelanggan */
 }
 
-.order-table th:nth-child(5), 
+.order-table th:nth-child(5), /* Alamat */
 .order-table td:nth-child(5) {
-    width: 18%; /* Email */
-}
-
-.order-table th:nth-child(6), /* Alamat */
-.order-table td:nth-child(6) {
     width: 20%; /* Deskripsi lebih lebar */
     min-width: 200px; /* Lebar minimum */ 
 }
 
+.order-table th:nth-child(6), 
+.order-table td:nth-child(6) {
+    width: 7%; /* Gmaps */
+}
+
 .order-table th:nth-child(7), 
 .order-table td:nth-child(7) {
-    width: 14%; /* Action */
+    width: 12%; /* Catatan */
 }
 
 .order-table th:nth-child(8), 
 .order-table td:nth-child(8) {
-    width: 14%; /* Action */
+    width: 10%; /* Tanggal Pengerjaan */
 }
 
 .order-table th:nth-child(9), 
 .order-table td:nth-child(9) {
-    width: 14%; /* Action */
+    width: 8%; /* Jam Pengerjaan */
+}
+
+.order-table th:nth-child(10), 
+.order-table td:nth-child(10) {
+    width: 10%; /* Action */
 }
 
 /* Select Kota */
