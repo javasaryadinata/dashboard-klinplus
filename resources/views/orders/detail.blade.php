@@ -6,51 +6,56 @@
 
 @section('content')
 
-<div class="detail-table">
-
-    <!-- Informasi Pelanggan -->
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">ID Order</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" value="{{ $order->id_order }}" readonly>
-        </div>
+@if(session('success'))
+    <div class="alert alert-success" id="order-success-alert">
+        {{ session('success') }}
     </div>
+@endif
 
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Nama Pelanggan :</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
-        </div>
-    </div>
-
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Alamat :</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->alamat_lokasi ?? '-' }}" readonly>
-        </div>
-    </div>
-
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Tanggal Pengerjaan :</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" 
-                   value="{{ $order->tanggal_pengerjaan }}" readonly>
-        </div>
-    </div>
-
-    <div class="row align-items-center mb-3">
-        <label class="col-md-2 col-form-label fw-semibold text-dark">Jam Pengerjaan :</label>
-        <div class="col-md-10">
-            <input type="text" class="form-control bg-light text-dark" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }} WIB" readonly>
-        </div>
-    </div>
-</div>
-
-<hr>
-
-<!-- Layanan -->
 <form method="POST" action="{{ route('orders.updateLayanan', $order->id_order) }}">
     @csrf
+    @method('PUT')
+
+    <div class="detail-table">
+
+        <!-- Informasi Pelanggan -->
+        <div class="row align-items-center mb-3">
+            <label class="col-md-2 col-form-label fw-semibold text-dark">ID Order</label>
+            <div class="col-md-10">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->id_order }}" readonly>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3">
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Nama Pelanggan :</label>
+            <div class="col-md-10">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3">
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Lokasi Pengerjaan :</label>
+            <div class="col-md-10">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->alamat_lokasi ?? '-' }}" readonly>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3">
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Tanggal Pengerjaan :</label>
+            <div class="col-md-10">
+                <input type="date" class="form-control bg-light text-dark" name="tanggal_pengerjaan" value="{{ $order->tanggal_pengerjaan }}" required>
+            </div>
+        </div>
+
+        <div class="row align-items-center mb-3">
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Waktu Pengerjaan :</label>
+            <div class="col-md-10">
+                <input type="time" class="form-control bg-light text-dark" name="jam_pengerjaan" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" required>
+            </div>
+        </div>
+    </div>
+
+    {{-- Button Tambah Layanan --}}
     <div class="btn-detail-layanan">
         <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderLayananModal">
             Tambah Layanan
@@ -215,7 +220,7 @@
                             <option 
                                 value="{{ $layanan->id }}"
                                 data-kode="{{ $layanan->id }}"
-                                data-nama="{{ $layanan->rootKategori->nama_rootkategori ?? '-' . ' - ' . $layanan->nama_subkategori }}"
+                                data-nama="{{ ($layanan->rootKategori->nama_rootkategori ?? '-') . ' - ' . $layanan->nama_subkategori }}"
                                 data-harga="{{ $layanan->harga }}"
                                 data-durasi="{{ $layanan->durasi ?? 0 }}">
                                 {{ ($layanan->rootKategori->nama_rootkategori ?? '-') . ' - ' . $layanan->nama_subkategori }} | Rp{{ number_format($layanan->harga, 0, ',', '.') }}

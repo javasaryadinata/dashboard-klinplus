@@ -93,11 +93,11 @@
                                     Setuju
                                 </button>
                             </form>
-                            <form action="#" method="GET">
+                            {{-- <form action="{{ route('jadwal.reschedule', $order->id_order) }}" method="GET">
                                 <button type="submit" class="btn btn-reschedule table-action-button">
                                     Re-schedule
                                 </button>
-                            </form>
+                            </form> --}}
                         </div>
                     </td>
                 </tr>

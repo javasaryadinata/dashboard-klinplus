@@ -7,6 +7,7 @@ use App\Models\OrderDetail;
 // use App\Models\Layanan;
 use App\Models\Pelanggan;
 use App\Models\Petugas;
+use App\Models\Jadwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->get();
+        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'request')->get();
         $pelanggans = Pelanggan::all();
         $promos     = DB::table('promo')->get();
         return view('orders.index', compact('orders', 'pelanggans', 'promos'));
@@ -141,14 +142,45 @@ class OrderController extends Controller
         }
     }
 
-    public function approve($id)
+    public function approve(Request $request, $id_order)
     {
-        $order         = Order::findOrFail($id);
+        $order = Order::findOrFail($id_order);
+
+        // Validasi: Pastikan order belum ada di tabel jadwal
+        if (Jadwal::where('id_order', $order->id_order)->exists()) {
+            return redirect()->route('orders.index')->with('error', 'Order ini sudah ada di jadwal.');
+        }
+
+        // Hitung durasi dan waktu selesai
+        $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+        $jamMulai = Carbon::parse($order->jam_pengerjaan);
+        $jamSelesai = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
+
+        $namaPetugas = $order->orderDetails
+            ->filter(fn($detail) => $detail->petugas)
+            ->pluck('petugas.nama_petugas')
+            ->unique()
+            ->implode(', ');
+
+        // Buat entri di tabel jadwals
+        Jadwal::create([
+            'id_order' => $order->id_order,
+            'nama_pelanggan' => $order->pelanggan->nama_pelanggan ?? '-',
+            'alamat' => $order->alamat_lokasi ?? '-',
+            'gmaps' => $order->lokasi_gmaps ?? null,
+            'catatan' => $order->catatan ?? null,
+            'tanggal_pengerjaan' => $order->tanggal_pengerjaan,
+            'waktu_pengerjaan' => $order->jam_pengerjaan,
+            'durasi' => $totalDurasi,
+            'waktu_selesai' => $jamSelesai,
+            'nama_petugas' => $namaPetugas ?: '-',
+            'status_pembayaran' => $order->metode_pembayaran ?? '-',
+        ]);
+
         $order->status = 'approved';
         $order->save();
 
-        return redirect()->route('orders.detail', $id)
-            ->with('success', 'Order berhasil di-approve.');
+        return redirect()->route('orders.index')->with('success', 'Order berhasil disetujui dan ditambahkan ke jadwal.');
     }
 
     protected function generateOrderId(): string
@@ -163,6 +195,85 @@ class OrderController extends Controller
         $sequence = $lastOrder ? (int) substr($lastOrder->id_order, -3) + 1 : 1;
 
         return $prefix . str_pad($sequence, 3, '0', STR_PAD_LEFT);
+    }
+
+    public function updateLayanan(Request $request, $id_order)
+    {
+        $request->validate([
+            'id_order_detail'  => 'array',
+            'tanggal_pengerjaan' => 'required|date|after_or_equal:today',
+            'jam_pengerjaan'     => 'required|date_format:H:i',
+            'layanans'           => 'array',
+            'subtotals'          => 'array',
+            'durasi_layanan'   => 'required|array',
+            'petugas'          => 'required|array',
+            'metode_pembayaran'  => 'required|in:DP,Lunas',
+            'tipe_pembayaran'    => 'required|in:Transfer,Cash',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Update pembayaran ke tabel 'orders'
+            $order = Order::findOrFail($id_order);
+            $order->tanggal_pengerjaan  = $request->tanggal_pengerjaan;
+            $order->jam_pengerjaan      = $request->jam_pengerjaan;
+            $order->metode_pembayaran = $request->metode_pembayaran;
+            $order->tipe_pembayaran   = $request->tipe_pembayaran;
+            $order->save();
+
+            // Ambil semua id_layanan_subkategori yang masih ada di form
+            $layanans = $request->input('layanans', []);
+
+            // Hapus order detail yang tidak ada di form
+            OrderDetail::where('id_order', $id_order)
+                ->whereNotIn('id_layanan_subkategori', $layanans)
+                ->delete();
+
+            // Update detail layanan
+            $idDetails = $request->input('id_order_detail', []);
+            $durasi    = $request->input('durasi_layanan', []);
+            $petugas   = $request->input('petugas', []);
+
+            foreach ($idDetails as $i => $id_detail) {
+                $detail = OrderDetail::find($id_detail);
+                if ($detail) {
+                    $detail->durasi_layanan = $durasi[$i] ?? 60;
+                    $detail->id_petugas     = $petugas[$i] ?? null;
+                    $detail->save();
+                }
+            }
+
+            // 2. Tambah layanan baru jika ada
+            $layanans  = $request->input('layanans', []);
+            $durasiBaru  = $request->input('durasi_layanan', []);
+            $petugasBaru = $request->input('petugas', []);
+            $subtotals = $request->input('subtotals', []);
+
+            // Cek apakah layanan baru sudah ada di order_detail
+            $existingLayananIds = OrderDetail::where('id_order', $id_order)->pluck('id_layanan_subkategori')->toArray();
+
+            foreach ($layanans as $i => $id_layanan) {
+                if (!in_array($id_layanan, $existingLayananIds)) {
+                    OrderDetail::create([
+                        'id_order'               => $id_order,
+                        'id_layanan_subkategori' => $id_layanan,
+                        'harga'                  => $subtotals[$i] ?? 0,
+                        'id_petugas'             => $petugasBaru[$i] ?? null,
+                        'durasi_layanan'         => $durasiBaru[$i] ?? 60,
+                    ]);
+                }
+            }
+
+            DB::commit();
+
+            return redirect()->route('orders.show', $id_order)
+                ->with('success', 'Perubahan berhasil disimpan.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->back()
+                ->with('error', 'Gagal memperbarui layanan: ' . $e->getMessage());
+        }
     }
 
     // public function updateLayanan(Request $request, $id_order)
@@ -212,49 +323,5 @@ class OrderController extends Controller
     //             ->with('error', 'Gagal menambahkan layanan: ' . $e->getMessage());
     //     }
     // }
-
-    public function updateLayanan(Request $request, $id_order)
-    {
-        $request->validate([
-            'id_order_detail'  => 'required|array',
-            'durasi_layanan'   => 'required|array',
-            'petugas'          => 'required|array',
-            'metode_pembayaran'  => 'required|in:DP,Lunas',
-            'tipe_pembayaran'    => 'required|in:Transfer,Cash',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Update pembayaran ke tabel 'orders'
-            $order = Order::findOrFail($id_order);
-            $order->metode_pembayaran = $request->metode_pembayaran;
-            $order->tipe_pembayaran   = $request->tipe_pembayaran;
-            $order->save();
-
-            // Update detail layanan
-            $idDetails = $request->input('id_order_detail', []);
-            $durasi    = $request->input('durasi_layanan', []);
-            $petugas   = $request->input('petugas', []);
-
-            foreach ($idDetails as $i => $id_detail) {
-                $detail = OrderDetail::find($id_detail);
-                if ($detail) {
-                    $detail->durasi_layanan = $durasi[$i] ?? 60;
-                    $detail->id_petugas     = $petugas[$i] ?? null;
-                    $detail->save();
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->route('orders.show', $id_order)
-                ->with('success', 'Perubahan layanan berhasil disimpan.');
-        } catch (\Throwable $e) {
-            DB::rollBack();
-            return redirect()->back()
-                ->with('error', 'Gagal memperbarui layanan: ' . $e->getMessage());
-        }
-    }
 
 }

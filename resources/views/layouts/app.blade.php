@@ -50,7 +50,7 @@
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
-                            <a href="{{ route('jadwal') }}" class="{{ request()->routeIs('jadwal') ? 'active' : '' }}">
+                            <a href="{{ route('jadwal.index') }}" class="{{ request()->routeIs('jadwal') ? 'active' : '' }}">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24">
                                     <g fill="none" stroke="currentColor" stroke-width="1.5">
                                         <rect width="14" height="17" x="5" y="4" rx="2" />
