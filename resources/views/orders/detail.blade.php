@@ -8,7 +8,7 @@
 
 <div class="detail-table">
 
-    <!-- Customer Information Section -->
+    <!-- Informasi Pelanggan -->
     <div class="row align-items-center mb-3">
         <label class="col-md-2 col-form-label fw-semibold text-dark">ID Order</label>
         <div class="col-md-10">
@@ -48,7 +48,7 @@
 
 <hr>
 
-<!-- Services Section -->
+<!-- Layanan -->
 <form method="POST" action="{{ route('orders.updateLayanan', $order->id_order) }}">
     @csrf
     <div class="btn-detail-layanan">
@@ -72,8 +72,11 @@
                 </thead>
                 <tbody>
                     @foreach($order->orderDetails as $detail)
-                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}">
-                        <td>{{ $loop->iteration }}</td>
+                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}" data-petugas-id="{{ $detail->id_petugas ?? '' }}">
+                        <td>
+                            {{ $loop->iteration }}
+                            <input type="hidden" name="id_order_detail[]" value="{{ $detail->id_order_detail }}">
+                        </td>
                         <td>
                             {{ 
                                 ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') 
@@ -82,8 +85,8 @@
                             }}
                         </td>
                         <td>
-                            <input type="number" class="form-control durasi-input" name="durasi[]" min="1"
-                            value="{{ $detail->layananSubkategori->durasi ?? 60 }}" style="width:80px;">
+                            <input type="number" name="durasi_layanan[]" class="form-control durasi-input" min="5" step="5"
+                            value="{{ $detail->durasi_layanan ?? 60 }}" style="width:80px;">
                         </td>
                         <td>
                             @if($detail->petugas)
@@ -111,18 +114,18 @@
 
     <!-- Hidden inputs container dengan data awal -->
     <div id="hiddenInputsContainer">
-        @foreach($order->orderDetails as $detail)
+        {{-- @foreach($order->orderDetails as $detail)
             <div class="hidden-input-wrapper" data-layanan-id="{{ $detail->id_layanan_subkategori }}">
                 <input type="hidden" name="layanans[]" value="{{ $detail->id_layanan_subkategori }}">
                 <input type="hidden" name="subtotals[]" value="{{ $detail->subtotal ?? $detail->harga }}">
-                <input type="hidden" name="durasi_layanan[]" value="{{ $detail->layananSubkategori->durasi ?? 60 }}">
+                <input type="hidden" name="durasi_layanan[]" value="{{ $detail->durasi_layanan ?? 60 }}">
                 <input type="hidden" name="petugas[]" value="{{ $detail->id_petugas ?? '' }}">
-                {{-- <input type="hidden" name="nama_petugas[]" value="{{ $detail->nama_petugas ?? '' }}"> --}}
+                <input type="hidden" name="nama_petugas[]" value="{{ $detail->nama_petugas ?? '' }}">
             </div>
-        @endforeach
+        @endforeach --}}
     </div>
 
-    <!-- Order Summary Section -->
+    <!-- Informasi Order -->
     <div class="detail-table">
         <div class="row align-items-center mb-3">
             <label class="col-md-2 col-form-label fw-semibold text-dark">Total Durasi :</label>
@@ -159,13 +162,13 @@
             </div>
         </div>
        
-        <!-- Payment Method Section -->
+        <!-- Metode Pembayaran -->
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Metode Pembayaran :</label>
+            <label class="col-md-2 col-form-label fw-semibold text-dark">Status Pembayaran :</label>
             
             <!-- Left Column (DP/Lunas) -->
             <div class="col-md-5">
-                <select class="form-select bg-light text-dark" name="metode_pembayaran" disabled>
+                <select class="form-select bg-light text-dark" name="metode_pembayaran">
                     <option value="DP" {{ $order->metode_pembayaran === 'DP' ? 'selected' : '' }}>DP (Down Payment)</option>
                     <option value="Lunas" {{ $order->metode_pembayaran === 'Lunas' ? 'selected' : '' }}>Lunas</option>
                 </select>
@@ -173,7 +176,7 @@
             
             <!-- Right Column (Transfer/Cash) -->
             <div class="col-md-5">
-                <select class="form-select bg-light text-dark" name="tipe_pembayaran" disabled>
+                <select class="form-select bg-light text-dark" name="tipe_pembayaran">
                     <option value="Transfer" {{ $order->tipe_pembayaran === 'Transfer' ? 'selected' : '' }}>Transfer</option>
                     <option value="Cash" {{ $order->tipe_pembayaran === 'Cash' ? 'selected' : '' }}>Cash</option>
                 </select>
@@ -192,7 +195,7 @@
     </div>
 </form>
 
-<!-- Add Service Modal -->
+<!-- Modal Tambah Layanan -->
 <div class="modal fade" id="tambahOrderLayananModal" tabindex="-1" aria-labelledby="tambahOrderLayananModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -301,6 +304,11 @@ document.addEventListener('DOMContentLoaded', function () {
         savePetugasBtn: document.getElementById('savePetugasBtn')
     };
 
+    // Panggil sekali saat halaman pertama kali load
+    addDurasiInputListeners();
+    updateTotalDurasiDanJamSelesai();
+    syncHiddenInputsWithTable();
+
     // Fungsi untuk mengupdate estimasi dan subtotal
     // function updateEstimasiDanSubtotal() {
     //     const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
@@ -335,7 +343,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // elements.layananSelect.addEventListener('change', updateEstimasiDanSubtotal);
     // elements.qtyInput.addEventListener('change', updateEstimasiDanSubtotal);
 
-    // Handle petugas selection change
+    // Handle Pilihan Petugas
     elements.petugasSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (selectedOption && selectedOption.value) {
@@ -345,6 +353,14 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
+    function addDurasiInputListeners() {
+        document.querySelectorAll('.durasi-input').forEach(input => {
+            input.addEventListener('input', updateTotalDurasiDanJamSelesai);
+            input.addEventListener('input', syncHiddenInputsWithTable);
+        });
+    }
+
+    // Fungsi Update Total Durasi dan Jam Selesai
     function updateTotalDurasiDanJamSelesai() {
         let totalDurasi = 0;
         document.querySelectorAll('.durasi-input').forEach(input => {
@@ -365,15 +381,23 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-        // Trigger update saat durasi diubah
+    document.querySelector('form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        syncHiddenInputsWithTable();
+
+        this.submit();
+    });
+
+    // Trigger update saat durasi diubah
     document.querySelectorAll('.durasi-input').forEach(input => {
         input.addEventListener('input', updateTotalDurasiDanJamSelesai);
     });
 
-    // Inisialisasi pertama
-    updateTotalDurasiDanJamSelesai();
+    document.querySelectorAll('.durasi-input').forEach(input => {
+        input.addEventListener('input', syncHiddenInputsWithTable);
+    });
 
-    // Fungsi untuk mengupdate total harga
+    // Fungsi Update Total Harga
     function updateTotalHarga() {
         const rows = elements.tableBody.querySelectorAll('tr');
         let totalHarga = 0;
@@ -394,6 +418,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Fungsi Update Penomoran Tabel
     function updateTableNumbering() {
         const rows = elements.tableBody.querySelectorAll('tr');
         rows.forEach((row, idx) => {
@@ -456,6 +481,7 @@ document.addEventListener('DOMContentLoaded', function () {
             elements.tableBody.appendChild(newRow);
         }
         updateTableNumbering();
+        addDurasiInputListeners();
 
         // Update hidden inputs
         const inputWrapper = document.createElement('div');
@@ -495,7 +521,7 @@ document.addEventListener('DOMContentLoaded', function () {
         elements.modal.hide();
     });
 
-    // Handle delete buttons
+    // Handle Tombol Hapus Layanan
     elements.tableBody.addEventListener('click', function(e) {
         if (e.target.classList.contains('btn-delete')) {
             if (confirm('Apakah Anda yakin ingin menghapus layanan ini?')) {
@@ -539,7 +565,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Handle Edit Petugas button
+    // Handle Tombol Edit Petugas
     document.addEventListener('click', function(e) {
         if (e.target.classList.contains('btn-edit-petugas')) {
             const layananId = e.target.dataset.layananId;
@@ -566,7 +592,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    // Handle save petugas button
+    // Handle Tombol Simpan Petugas
     elements.savePetugasBtn.addEventListener('click', function() {
         const layananId = elements.editPetugasLayananId.value;
         const selectedOption = elements.petugasSelect.options[elements.petugasSelect.selectedIndex];
@@ -595,17 +621,18 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         
         // Update hidden input
-        const wrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
-        if (wrapper) {
-            let petugasInput = wrapper.querySelector('input[name="petugas[]"]');
-            if (!petugasInput) {
-                petugasInput = document.createElement('input');
-                petugasInput.type = 'hidden';
-                petugasInput.name = 'petugas[]';
-                wrapper.appendChild(petugasInput);
-            }
-            petugasInput.value = petugasId;
-        }
+        // const wrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
+        // if (wrapper) {
+        //     let petugasInput = wrapper.querySelector('input[name="petugas[]"]');
+        //     if (!petugasInput) {
+        //         petugasInput = document.createElement('input');
+        //         petugasInput.type = 'hidden';
+        //         petugasInput.name = 'petugas[]';
+        //         wrapper.appendChild(petugasInput);
+        //     }
+        //     petugasInput.value = petugasId;
+        // }
+        syncHiddenInputsWithTable();
         elements.editPetugasModal.hide();
     });
 });

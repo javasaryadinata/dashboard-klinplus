@@ -29,11 +29,19 @@
                     <th>Catatan</th>
                     <th>Tanggal Pengerjaan</th>
                     <th>Waktu Pengerjaan</th>
+                    <th>Durasi</th>
+                    <th>Waktu Selesai</th>
+                    <th>Status Pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($orders as $order)
+                @php
+                    $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+                    $jamMulai = \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan);
+                    $jamSelesai = $totalDurasi ? $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i') . ' WIB' : '-';
+                @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>
@@ -53,10 +61,10 @@
                     </td>
                     <td>{{ $order->id_order }}</td>
                     <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
-                    <td>{{ $order->pelanggan->alamat_lokasi ?? '-' }}</td>
+                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
                     <td>
-                        @if($order->pelanggan->lokasi_gmaps ?? false)
-                            <a href="{{ $order->pelanggan->lokasi_gmaps }}" target="_blank">Lihat</a>
+                        @if($order->lokasi_gmaps ?? false)
+                            <a href="{{ $order->lokasi_gmaps }}" target="_blank">Lihat</a>
                         @else
                             -
                         @endif
@@ -64,26 +72,29 @@
                     <td>{{ $order->catatan ?? '-' }}</td>
                     <td>{{ $order->tanggal_pengerjaan }}</td>
                     <td>{{ \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan)->format('H:i') }} WIB</td>
+                    <td>{{ $totalDurasi ? $totalDurasi . ' menit' : '-' }}</td>
+                    <td>{{ $jamSelesai }}</td>
+                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
                     <td>
-                        <div class="d-flex flex-wrap gap-1 justify-content-start">
-                            <a href="{{ route('orders.detail', $order->id_order) }}" class="btn-info">
+                        <div class="d-flex flex-column gap-2">
+                            <a href="{{ route('orders.detail', $order->id_order) }}" class="btn btn-info table-action-button">
                                 Layanan
                             </a>
                             <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="delete-button">
+                                <button type="submit" class="btn btn-hapus table-action-button">
                                     Hapus
                                 </button>
                             </form>
                             <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn-approve">
+                                <button type="submit" class="btn btn-approve table-action-button">
                                     Setuju
                                 </button>
                             </form>
                             <form action="#" method="GET">
-                                <button type="submit" class="btn-reschedule">
+                                <button type="submit" class="btn btn-reschedule table-action-button">
                                     Re-schedule
                                 </button>
                             </form>

@@ -25,7 +25,9 @@ class Order extends Model
         'jam_pengerjaan',
         'total_harga',
         'diskon',
-        'kode'
+        'kode',
+        'metode_pembayaran',
+        'tipe_pembayaran',
     ];
 
     public function pelanggan()

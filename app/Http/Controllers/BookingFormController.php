@@ -2,14 +2,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\LayananRootKategori;
-use App\Models\Pelanggan;
 use App\Models\Order;
-use App\Mail\InvoiceBookingMail;   
+use App\Models\Pelanggan;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Mail;
 
 class BookingFormController extends Controller
 {
@@ -36,9 +34,9 @@ class BookingFormController extends Controller
      */
     protected function generatePelangganId(): string
     {
-        $now = Carbon::now();
-        $prefix = 'CS' . $now->format('ym');
-        $lastPelanggan = Pelanggan::where('id_pelanggan', 'like', $prefix.'%')
+        $now           = Carbon::now();
+        $prefix        = 'CS' . $now->format('ym');
+        $lastPelanggan = Pelanggan::where('id_pelanggan', 'like', $prefix . '%')
             ->orderBy('id_pelanggan', 'desc')
             ->first();
         $sequence = $lastPelanggan ? (int) substr($lastPelanggan->id_pelanggan, -3) + 1 : 1;
@@ -47,9 +45,9 @@ class BookingFormController extends Controller
 
     protected function generateOrderId(): string
     {
-        $now = Carbon::now();
-        $prefix = 'ORD-' . $now->format('ym');
-        $lastOrder = Order::where('id_order', 'like', $prefix.'%')
+        $now       = Carbon::now();
+        $prefix    = 'ORD-' . $now->format('ym');
+        $lastOrder = Order::where('id_order', 'like', $prefix . '%')
             ->orderBy('id_order', 'desc')
             ->first();
         $sequence = $lastOrder ? (int) substr($lastOrder->id_order, -3) + 1 : 1;
@@ -81,20 +79,20 @@ class BookingFormController extends Controller
 
     public function checkPromo(Request $request)
     {
-        $kode = $request->query('kode');
+        $kode  = $request->query('kode');
         $promo = \App\Models\Promo::whereRaw('LOWER(kode) = ?', [strtolower($kode)])->first();
 
         if ($promo) {
             return response()->json([
-                'valid' => true,
-                'diskon' => $promo->diskon,
-                'message' => 'Kode promo valid'
+                'valid'   => true,
+                'diskon'  => $promo->diskon,
+                'message' => 'Kode promo valid',
             ]);
         } else {
             return response()->json([
-                'valid' => false,
-                'diskon' => 0,
-                'message' => 'Kode promo tidak ditemukan.'
+                'valid'   => false,
+                'diskon'  => 0,
+                'message' => 'Kode promo tidak ditemukan.',
             ], 404);
         }
     }
@@ -124,9 +122,9 @@ class BookingFormController extends Controller
         }
 
         $pelanggan = Pelanggan::where('telp_pelanggan', $request->whatsapp)->first();
-        if (!$pelanggan) {
+        if (! $pelanggan) {
             $idPelanggan = $this->generatePelangganId();
-            $pelanggan = Pelanggan::create([
+            $pelanggan   = Pelanggan::create([
                 'id_pelanggan'   => $idPelanggan,
                 'nama_pelanggan' => $request->nama_lengkap,
                 'telp_pelanggan' => $request->whatsapp,
@@ -164,7 +162,7 @@ class BookingFormController extends Controller
             ->sum('harga');
 
         // Cek promo
-        $diskon = 0;
+        $diskon    = 0;
         $kodePromo = $request->promo;
         if ($kodePromo) {
             $promo = DB::table('promo')
@@ -177,7 +175,7 @@ class BookingFormController extends Controller
 
         // Simpan order
         $idOrder = $this->generateOrderId();
-        $order = Order::create([
+        $order   = Order::create([
             'id_order'           => $idOrder,
             'id_pelanggan'       => $pelanggan->id_pelanggan,
             'tanggal_pengerjaan' => $request->tanggal,
@@ -195,11 +193,11 @@ class BookingFormController extends Controller
             $harga = DB::table('layanan_subkategori')->where('id', $idLayanan)->value('harga');
 
             DB::table('order_detail')->insert([
-                'id_order' => $idOrder,
+                'id_order'               => $idOrder,
                 'id_layanan_subkategori' => $idLayanan,
-                'harga' => $harga,
-                'created_at' => now(),
-                'updated_at' => now(),
+                'harga'                  => $harga,
+                'created_at'             => now(),
+                'updated_at'             => now(),
             ]);
         }
 
