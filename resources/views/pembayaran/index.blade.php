@@ -26,11 +26,56 @@
                     <th>Diskon</th>
                     <th>Total Harga</th>
                     <th>Status Pembayaran</th>
+                    <th>Tipe Pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <!-- Table rows will be populated here -->
+                @foreach($orders as $order)
+                <tr>
+                    <td>{{ $loop->iteration }}</td>
+                    <td>{{ $order->id_order }}</td>
+                    <td>{{ $order->pelanggan->nama_pelanggan }}</td>
+                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
+                    <td>
+                        @php
+                            $layananList = $order->orderDetails->map(function($detail) {
+                                $root = $detail->layananSubkategori->rootKategori->nama_rootkategori ?? '';
+                                $sub = $detail->layananSubkategori->nama_subkategori ?? '';
+                                return trim($root . ' - ' . $sub, ' -');
+                            })->unique()->implode(', ');
+                        @endphp
+                        {{ $layananList ?: '-' }}
+                    </td>
+                    <td>{{ $order->tanggal_pengerjaan }}</td>
+                    <td>
+                        {{-- Diskon, jika ada field diskon di order --}}
+                        {{ $order->diskon ? 'Rp ' . number_format($order->diskon, 0, ',', '.') : '-' }}
+                    </td>
+                    <td>
+                        @php
+                            $totalHarga = $order->orderDetails->sum('harga');
+                        @endphp
+                        Rp {{ number_format($totalHarga, 0, ',', '.') }}
+                    </td>
+                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
+                    <td>{{ $order->tipe_pembayaran ?? '-' }}</td>
+                    <td>
+                        <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-info btn-sm mb-1">
+                            Detail
+                        </a>
+                        <a href="{{ route('pembayaran.invoice', $order->id_order) }}" class="btn btn-secondary btn-sm mb-1">
+                            Invoice
+                        </a>
+                        <form action="{{ route('pembayaran.close', $order->id_order) }}" method="POST" style="display:inline;">
+                            @csrf
+                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Tutup pembayaran untuk order ini?')">
+                                Tutup
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                @endforeach
             </tbody>
         </table>
     </div>

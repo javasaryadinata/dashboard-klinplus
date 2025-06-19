@@ -7,7 +7,7 @@ use App\Models\OrderDetail;
 // use App\Models\Layanan;
 use App\Models\Pelanggan;
 use App\Models\Petugas;
-use App\Models\Jadwal;
+// use App\Models\Jadwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -146,41 +146,42 @@ class OrderController extends Controller
     {
         $order = Order::findOrFail($id_order);
 
-        // Validasi: Pastikan order belum ada di tabel jadwal
-        if (Jadwal::where('id_order', $order->id_order)->exists()) {
-            return redirect()->route('orders.index')->with('error', 'Order ini sudah ada di jadwal.');
+        // Validasi: Pastikan order belum berstatus scheduled
+        if ($order->status === 'scheduled') {
+            return redirect()->route('orders.index')->with('error', 'Order ini sudah dijadwalkan.');
         }
 
         // Hitung durasi dan waktu selesai
-        $totalDurasi = $order->orderDetails->sum('durasi_layanan');
-        $jamMulai = Carbon::parse($order->jam_pengerjaan);
-        $jamSelesai = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
+        // $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+        // $jamMulai = Carbon::parse($order->jam_pengerjaan);
+        // $jamSelesai = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
 
-        $namaPetugas = $order->orderDetails
-            ->filter(fn($detail) => $detail->petugas)
-            ->pluck('petugas.nama_petugas')
-            ->unique()
-            ->implode(', ');
+        // $namaPetugas = $order->orderDetails
+        //     ->filter(fn($detail) => $detail->petugas)
+        //     ->pluck('petugas.nama_petugas')
+        //     ->unique()
+        //     ->implode(', ');
 
-        // Buat entri di tabel jadwals
-        Jadwal::create([
-            'id_order' => $order->id_order,
-            'nama_pelanggan' => $order->pelanggan->nama_pelanggan ?? '-',
-            'alamat' => $order->alamat_lokasi ?? '-',
-            'gmaps' => $order->lokasi_gmaps ?? null,
-            'catatan' => $order->catatan ?? null,
-            'tanggal_pengerjaan' => $order->tanggal_pengerjaan,
-            'waktu_pengerjaan' => $order->jam_pengerjaan,
-            'durasi' => $totalDurasi,
-            'waktu_selesai' => $jamSelesai,
-            'nama_petugas' => $namaPetugas ?: '-',
-            'status_pembayaran' => $order->metode_pembayaran ?? '-',
-        ]);
+        // // Buat entri di tabel jadwals
+        // Jadwal::create([
+        //     'status' => 'scheduled',
+        //     'id_order' => $order->id_order,
+        //     'nama_pelanggan' => $order->pelanggan->nama_pelanggan ?? '-',
+        //     'alamat' => $order->alamat_lokasi ?? '-',
+        //     'gmaps' => $order->lokasi_gmaps ?? null,
+        //     'catatan' => $order->catatan ?? null,
+        //     'tanggal_pengerjaan' => $order->tanggal_pengerjaan,
+        //     'waktu_pengerjaan' => $order->jam_pengerjaan,
+        //     'durasi' => $totalDurasi,
+        //     'waktu_selesai' => $jamSelesai,
+        //     'nama_petugas' => $namaPetugas ?: '-',
+        //     'status_pembayaran' => $order->metode_pembayaran ?? '-',
+        // ]);
 
-        $order->status = 'approved';
+        $order->status = 'Scheduled';
         $order->save();
 
-        return redirect()->route('orders.index')->with('success', 'Order berhasil disetujui dan ditambahkan ke jadwal.');
+        return redirect()->route('orders.index')->with('success', 'Order berhasil disetujui dan dijadwalkan.');
     }
 
     protected function generateOrderId(): string
@@ -267,7 +268,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return redirect()->route('orders.show', $id_order)
+            return redirect()->route('orders.index', $id_order)
                 ->with('success', 'Perubahan berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();

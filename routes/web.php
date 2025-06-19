@@ -7,6 +7,7 @@ use App\Http\Controllers\PelangganController;
 use App\Http\Controllers\PetugasController;
 use App\Http\Controllers\BookingFormController;
 use App\Http\Controllers\JadwalController;
+use App\Http\Controllers\PembayaranController;
 use Illuminate\Support\Facades\Route;
 
 // Route dasar
@@ -45,13 +46,17 @@ Route::resource('petugas', PetugasController::class)
 Route::get('/jadwal', [JadwalController::class, 'index'])->name('jadwal.index');
 Route::get('/jadwal/{id_order}', [JadwalController::class, 'show'])->name('jadwal.show');
 Route::post('/jadwal/{id_order}/selesai', [JadwalController::class, 'selesai'])->name('jadwal.selesai');
-Route::get('/jadwal/{id_order}/reschedule', [JadwalController::class, 'reschedule'])->name('jadwal.reschedule');
+Route::post('/jadwal/{id_order}/reschedule', [JadwalController::class, 'reschedule'])->name('jadwal.reschedule');
+Route::get('/jadwal/{id_order}/reschedule-form', [JadwalController::class, 'rescheduleForm'])->name('jadwal.rescheduleForm');
+Route::put('/jadwal/{id_order}/reschedule-update', [JadwalController::class, 'rescheduleUpdate'])->name('jadwal.rescheduleUpdate');
 Route::put('/jadwal/{id_order}', [JadwalController::class, 'update'])->name('jadwal.update');
 Route::delete('/jadwal/{id_order}', [JadwalController::class, 'destroy'])->name('jadwal.destroy');
 
-Route::get('/pembayaran', function () {
-    return view('pembayaran.index');
-})->name('pembayaran');
+Route::get('/pembayaran', [PembayaranController::class, 'index'])->name('pembayaran.index');
+Route::get('/orders/{id_order}', [OrderController::class, 'show'])->name('orders.show');
+Route::get('/pembayaran/{id_order}/invoice', [PembayaranController::class, 'invoice'])->name('pembayaran.invoice');
+Route::post('/pembayaran/{id_order}/close', [PembayaranController::class, 'close'])->name('pembayaran.close');
+
 
 Route::get('/riwayat', function () {
     return view('riwayat.index');

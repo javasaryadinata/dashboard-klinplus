@@ -14,6 +14,7 @@ class Jadwal extends Model
     protected $primaryKey = 'id'; // Kolom primary key
 
     protected $fillable = [
+        'status',
         'id_order',
         'nama_pelanggan',
         'alamat',

@@ -11,6 +11,7 @@
             <thead>
                 <tr>
                     <th>No</th>
+                    <th>Status</th>
                     <th>ID Order</th>
                     <th>Nama Pelanggan</th>
                     <th>Alamat</th>
@@ -26,43 +27,63 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($jadwals as $jadwal)
+                @forelse($jadwals as $order)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
-                    <td>{{ $jadwal->id_order }}</td>
-                    <td>{{ $jadwal->nama_pelanggan }}</td>
-                    <td>{{ $jadwal->alamat }}</td>
                     <td>
-                        @if($jadwal->gmaps)
-                            <a href="{{ $jadwal->gmaps }}" target="_blank">Lihat</a>
+                        @php
+                            $status = strtolower($order->status);
+                            $statusColor = match ($status) {
+                                'Scheduled' => '#B0DB9C',
+                                'Rescheduled' => '#fff000',
+                                default => '#dee2e6',
+                            };
+                        @endphp
+                        <span 
+                            class="badge px-2 py-2 text-dark" 
+                            style="background-color: {{ $statusColor }}; border-radius: 2rem;">
+                            {{ ucfirst($order->status) }}
+                        </span>
+                    </td>
+                    <td>{{ $order->id_order }}</td>
+                    <td>{{ $order->pelanggan->nama_pelanggan }}</td>
+                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
+                    <td>
+                        @if($order->lokasi_gmaps)
+                            <a href="{{ $order->lokasi_gmaps }}" target="_blank">Lihat</a>
                         @else
                             -
                         @endif
                     </td>
-                    <td>{{ $jadwal->catatan ?? '-' }}</td>
-                    <td>{{ $jadwal->tanggal_pengerjaan }}</td>
-                    <td>{{ \Carbon\Carbon::parse($jadwal->waktu_pengerjaan)->format('H:i') }} WIB</td>
-                    <td>{{ $jadwal->durasi }} menit</td>
-                    <td>{{ \Carbon\Carbon::parse($jadwal->waktu_selesai)->format('H:i') }} WIB</td>
-                    <td>{{ $jadwal->nama_petugas ?? '-' }}</td>
-                    <td>{{ $jadwal->status_pembayaran }}</td>
+                    <td>{{ $order->catatan ?? '-' }}</td>
+                    <td>{{ $order->tanggal_pengerjaan }}</td>
+                    <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') . ' WIB' : '-' }}</td>
+                    <td>{{ $order->orderDetails->sum('durasi_layanan') ? $order->orderDetails->sum('durasi_layanan') . ' menit' : '-' }}</td>
+                    <td>
+                        @php
+                            $jamMulai = $order->jam_pengerjaan ? \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan) : null;
+                            $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+                            $jamSelesai = ($jamMulai && $totalDurasi) ? $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i') . ' WIB' : '-';
+                        @endphp
+                        {{ $jamSelesai }}
+                    </td>
+                    <td>{{ $order->orderDetails->pluck('petugas.nama_petugas')->unique()->implode(', ') ?: '-' }}</td>
+                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
                     <td>
                         <div class="d-flex flex-column gap-2">
-                            <a href="{{ route('jadwal.show', $jadwal->id_order) }}" class="btn btn-info table-action-button">
-                                Layanan
-                            </a>
-                            <form action="{{ route('jadwal.selesai', $jadwal->id_order) }}" method="POST">
+                            <form action="{{ route('jadwal.reschedule', $order->id_order) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-warning table-action-button">
+                                    Re-schedule
+                                </button>
+                            </form>
+                            <form action="{{ route('jadwal.selesai', $order->id_order) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-success table-action-button">
                                     Selesai
                                 </button>
                             </form>
-                            <form action="{{ route('jadwal.reschedule', $jadwal->id_order) }}" method="GET">
-                                <button type="submit" class="btn btn-warning table-action-button">
-                                    Re-schedule
-                                </button>
-                            </form>
-                            <form action="{{ route('jadwal.destroy', $jadwal->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
+                            <form action="{{ route('jadwal.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger table-action-button">
