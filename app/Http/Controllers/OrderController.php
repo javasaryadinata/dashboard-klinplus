@@ -4,13 +4,16 @@ namespace App\Http\Controllers;
 use App\Models\LayananSubkategori;
 use App\Models\Order;
 use App\Models\OrderDetail;
-// use App\Models\Layanan;
 use App\Models\Pelanggan;
 use App\Models\Petugas;
+use App\Models\OrderDetailPetugas;
+// use App\Models\Layanan;
 // use App\Models\Jadwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Fasade;
 
 class OrderController extends Controller
 {
@@ -91,11 +94,11 @@ class OrderController extends Controller
 
     public function show($id)
     {
-        $order    = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->findOrFail($id);
-        $petugas  = Petugas::all();
+        $order    = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori', 'orderDetails.petugas'])->findOrFail($id);
         $layanans = LayananSubkategori::with('rootKategori')->get();
+        $petugas = Petugas::all();
 
-        return view('orders.detail', compact('order', 'petugas', 'layanans'));
+        return view('orders.detail', compact('order', 'layanans', 'petugas'));
     }
 
     public function update(Request $request, $id)
@@ -200,75 +203,88 @@ class OrderController extends Controller
 
     public function updateLayanan(Request $request, $id_order)
     {
+
+        // dd($request->all());
+
         $request->validate([
-            'id_order_detail'  => 'array',
-            'tanggal_pengerjaan' => 'required|date|after_or_equal:today',
-            'jam_pengerjaan'     => 'required|date_format:H:i',
-            'layanans'           => 'array',
-            'subtotals'          => 'array',
-            'durasi_layanan'   => 'required|array',
-            'petugas'          => 'required|array',
-            'metode_pembayaran'  => 'required|in:DP,Lunas',
-            'tipe_pembayaran'    => 'required|in:Transfer,Cash',
+            'id_order_detail'     => 'required|array',
+            'tanggal_pengerjaan'  => 'required|date|after_or_equal:today',
+            'jam_pengerjaan'      => 'required|date_format:H:i',
+            'layanans'            => 'required|array',
+            'subtotals'           => 'required|array',
+            'durasi_layanan'      => 'required|array',
+            'petugas'             => 'required|array',
+            'metode_pembayaran'   => 'required|in:DP,Lunas',
+            'tipe_pembayaran'     => 'required|in:Transfer,Cash',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Update pembayaran ke tabel 'orders'
+            // Update order utama
             $order = Order::findOrFail($id_order);
-            $order->tanggal_pengerjaan  = $request->tanggal_pengerjaan;
-            $order->jam_pengerjaan      = $request->jam_pengerjaan;
-            $order->metode_pembayaran = $request->metode_pembayaran;
-            $order->tipe_pembayaran   = $request->tipe_pembayaran;
-            $order->save();
+            $order->update([
+                'tanggal_pengerjaan'   => $request->tanggal_pengerjaan,
+                'jam_pengerjaan'       => $request->jam_pengerjaan,
+                'metode_pembayaran'    => $request->metode_pembayaran,
+                'tipe_pembayaran'      => $request->tipe_pembayaran,
+            ]);
 
-            // Ambil semua id_layanan_subkategori yang masih ada di form
-            $layanans = $request->input('layanans', []);
-
-            // Hapus order detail yang tidak ada di form
+            // Hapus order_detail yang sudah dihapus user di form
             OrderDetail::where('id_order', $id_order)
-                ->whereNotIn('id_layanan_subkategori', $layanans)
+                ->whereNotIn('id_layanan_subkategori', $request->layanans)
                 ->delete();
 
-            // Update detail layanan
-            $idDetails = $request->input('id_order_detail', []);
-            $durasi    = $request->input('durasi_layanan', []);
-            $petugas   = $request->input('petugas', []);
+            foreach ($request->layanans as $i => $id_layanan) {
+                $id_order_detail = $request->id_order_detail[$i];
+                $durasi          = $request->durasi_layanan[$i] ?? 60;
+                $subtotal        = $request->subtotals[$i] ?? 0;
+                $petugasArr      = $request->petugas[$i] ?? [];
 
-            foreach ($idDetails as $i => $id_detail) {
-                $detail = OrderDetail::find($id_detail);
-                if ($detail) {
-                    $detail->durasi_layanan = $durasi[$i] ?? 60;
-                    $detail->id_petugas     = $petugas[$i] ?? null;
-                    $detail->save();
-                }
-            }
+                if ($id_order_detail) {
+                    // Detail sudah ada, update durasi, update petugas
+                    $detail = OrderDetail::find($id_order_detail);
+                    if ($detail) {
+                        $detail->durasi_layanan = $durasi;
+                        $detail->harga = $subtotal;
+                        $detail->save();
 
-            // 2. Tambah layanan baru jika ada
-            $layanans  = $request->input('layanans', []);
-            $durasiBaru  = $request->input('durasi_layanan', []);
-            $petugasBaru = $request->input('petugas', []);
-            $subtotals = $request->input('subtotals', []);
-
-            // Cek apakah layanan baru sudah ada di order_detail
-            $existingLayananIds = OrderDetail::where('id_order', $id_order)->pluck('id_layanan_subkategori')->toArray();
-
-            foreach ($layanans as $i => $id_layanan) {
-                if (!in_array($id_layanan, $existingLayananIds)) {
-                    OrderDetail::create([
-                        'id_order'               => $id_order,
-                        'id_layanan_subkategori' => $id_layanan,
-                        'harga'                  => $subtotals[$i] ?? 0,
-                        'id_petugas'             => $petugasBaru[$i] ?? null,
-                        'durasi_layanan'         => $durasiBaru[$i] ?? 60,
-                    ]);
+                        // Update petugas
+                        OrderDetailPetugas::where('id_order_detail', $detail->id_order_detail)->delete();
+                        foreach (array_filter($petugasArr) as $id_petugas) {
+                            OrderDetailPetugas::create([
+                                'id_order_detail' => $detail->id_order_detail,
+                                'id_petugas'      => $id_petugas
+                            ]);
+                        }
+                    }
+                } else {
+                    // CEK APAKAH SUDAH ADA detail dengan id_order & id_layanan_subkategori INI!
+                    $exists = OrderDetail::where('id_order', $id_order)
+                        ->where('id_layanan_subkategori', $id_layanan)
+                        ->exists();
+                    if (!$exists) {
+                        // Detail baru, create detail
+                        $detail = OrderDetail::create([
+                            'id_order'               => $id_order,
+                            'id_layanan_subkategori' => $id_layanan,
+                            'durasi_layanan'         => $durasi,
+                            'harga'                  => $subtotal,
+                        ]);
+                        // Insert petugas
+                        foreach (array_filter($petugasArr) as $id_petugas) {
+                            OrderDetailPetugas::create([
+                                'id_order_detail' => $detail->id_order_detail,
+                                'id_petugas'      => $id_petugas
+                            ]);
+                        }
+                    }
                 }
             }
 
             DB::commit();
 
-            return redirect()->route('orders.index', $id_order)
+            return redirect()->route('orders.show', $id_order)
                 ->with('success', 'Perubahan berhasil disimpan.');
         } catch (\Throwable $e) {
             DB::rollBack();

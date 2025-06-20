@@ -1,21 +1,20 @@
 <?php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
 class OrderDetail extends Model
 {
-    protected $table = 'order_detail';
+    protected $table      = 'order_detail';
     protected $primaryKey = 'id_order_detail';
-    public $incrementing = true;
-    protected $keyType = 'int';
+    public $incrementing  = true;
+    protected $keyType    = 'int';
 
     protected $fillable = [
         'id_order',
         'id_layanan_subkategori',
         'harga',
-        'id_petugas'
+        'id_petugas',
     ];
 
     public function order()
@@ -30,6 +29,6 @@ class OrderDetail extends Model
 
     public function petugas()
     {
-        return $this->belongsTo(Petugas::class, 'id_petugas', 'id_petugas');
+        return $this->belongsToMany(Petugas::class, 'order_detail_petugas', 'id_order_detail', 'id_petugas', 'id_order_detail', 'id_petugas');
     }
 }

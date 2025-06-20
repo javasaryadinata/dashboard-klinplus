@@ -76,8 +76,12 @@
                     </tr>  
                 </thead>
                 <tbody>
-                    @foreach($order->orderDetails as $detail)
-                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}" data-petugas-id="{{ $detail->id_petugas ?? '' }}">
+                    @foreach($order->orderDetails as $i => $detail)
+                    @php
+                        $namaPetugas = $detail->petugas->pluck('nama_petugas')->implode(', ');
+                        $idPetugas = $detail->petugas->pluck('id_petugas')->implode(',');
+                    @endphp
+                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}" data-id-order-detail="{{ $detail->id_order_detail }}" data-petugas-id="{{ $idPetugas }}">
                         <td>
                             {{ $loop->iteration }}
                             <input type="hidden" name="id_order_detail[]" value="{{ $detail->id_order_detail }}">
@@ -94,18 +98,15 @@
                             value="{{ $detail->durasi_layanan ?? 60 }}" style="width:80px;">
                         </td>
                         <td>
-                            @if($detail->petugas)
-                                {{ $detail->petugas->id_petugas }} - {{ $detail->petugas->nama_petugas }}
-                            @else
-                                -
-                            @endif
+                            {{ $namaPetugas }}
+                        </td>
                         </td>
                         <td>Rp{{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
                         <td>
                             <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
                                 data-layanan-id="{{ $detail->id_layanan_subkategori }}"
-                                data-current-petugas="{{ $detail->petugas ?? '' }}"
-                                data-current-nama-petugas="{{ $detail->nama_petugas ?? '' }}">
+                                data-current-petugas="{{ $idPetugas }}"
+                                data-current-nama-petugas="{{ $namaPetugas }}">
                                 Edit Petugas
                             </button>
                             <button type="button" class="btn btn-sm btn-danger btn-delete">Hapus</button>
@@ -263,9 +264,20 @@
             <div class="modal-body">
                 <input type="hidden" id="editPetugasLayananId">
                 <div class="mb-3">
-                    <label for="petugasSelect" class="form-label">Pilih Petugas</label>
-                    <select class="form-select" id="petugasSelect" required>
-                        <option value="" selected disabled>-- Pilih Petugas --</option>
+                    <label for="petugasSelect1" class="form-label">Pilih Petugas 1</label>
+                    <select class="form-select" id="petugasSelect1" required>
+                        <option value="" selected disabled>-- Pilih Petugas 1 --</option>
+                        @foreach($petugas as $ptg)
+                            <option value="{{ $ptg->id_petugas }}" data-nama="{{ $ptg->nama_petugas }}">
+                                {{ $ptg->id_petugas }} - {{ $ptg->nama_petugas }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="petugasSelect2" class="form-label">Pilih Petugas 2 (Opsional)</label>
+                    <select class="form-select" id="petugasSelect2">
+                        <option value="" selected>-- Pilih Petugas 2 --</option>
                         @foreach($petugas as $ptg)
                             <option value="{{ $ptg->id_petugas }}" data-nama="{{ $ptg->nama_petugas }}">
                                 {{ $ptg->id_petugas }} - {{ $ptg->nama_petugas }}
@@ -347,16 +359,6 @@ document.addEventListener('DOMContentLoaded', function () {
     // Event listeners untuk update estimasi dan subtotal
     // elements.layananSelect.addEventListener('change', updateEstimasiDanSubtotal);
     // elements.qtyInput.addEventListener('change', updateEstimasiDanSubtotal);
-
-    // Handle Pilihan Petugas
-    elements.petugasSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        if (selectedOption && selectedOption.value) {
-            elements.petugasInput.value = selectedOption.getAttribute('data-nama');
-        } else {
-            elements.petugasInput.value = '';
-        }
-    });
 
     function addDurasiInputListeners() {
         document.querySelectorAll('.durasi-input').forEach(input => {
@@ -549,25 +551,49 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
     function syncHiddenInputsWithTable() {
-        elements.hiddenInputsContainer.innerHTML = '';
-        const rows = elements.tableBody.querySelectorAll('tr');
-        rows.forEach(row => {
-            const layananId = row.dataset.layananId;
-            const durasi = row.cells[2].querySelector('input') ? row.cells[2].querySelector('input').value : '';
-            const petugasText = row.cells[3].textContent.trim();
-            const petugasId = row.dataset.petugasId || '';
-            const harga = row.cells[4].textContent.replace('Rp', '').replace(/\./g, '').replace(/ /g, '') || 0;
-            const wrapper = document.createElement('div');
-            wrapper.classList.add('hidden-input-wrapper');
-            wrapper.dataset.layananId = layananId;
-            wrapper.innerHTML = `
-                <input type="hidden" name="layanans[]" value="${layananId}">
-                <input type="hidden" name="durasi_layanan[]" value="${durasi}">
-                <input type="hidden" name="subtotals[]" value="${harga}">
-                <input type="hidden" name="petugas[]" value="${petugasId}">
-            `;
-            elements.hiddenInputsContainer.appendChild(wrapper);
+        elements.hiddenInputsContainer.innerHTML = ''; // Bersihkan dulu
+
+        document.querySelectorAll('#layananOrderTable tbody tr').forEach((row, index) => {
+            const idOrderDetailInput = row.querySelector('input[name="id_order_detail[]"]');
+            const idOrderDetail = idOrderDetailInput ? idOrderDetailInput.value : '';
+            const layananId     = row.dataset.layananId;
+            const durasi        = row.querySelector('.durasi-input')?.value || '60';
+            const petugasId     = row.dataset.petugasId || '';
+            const harga         = row.cells[4].textContent.replace('Rp', '').replace(/\./g, '').trim() || '0';
+            const petugasArr    = petugasId.split(',').filter(Boolean);
+
+            // Masukkan hidden input id_order_detail, layanan, durasi, subtotal
+            elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
+                <input type="hidden" name="id_order_detail[]"  value="${idOrderDetail}">
+                <input type="hidden" name="layanans[]"         value="${layananId}">
+                <input type="hidden" name="durasi_layanan[]"   value="${durasi}">
+                <input type="hidden" name="subtotals[]"        value="${harga}">
+            `);
+
+            // Masukkan petugas sebagai array dua dimensi: petugas[0][], petugas[1][]
+            petugasArr.forEach(pid => {
+                elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
+                    <input type="hidden" name="petugas[${index}][]" value="${pid}">
+                `);
+            });
         });
+    }
+
+    // Handle Pilihan Petugas
+    document.getElementById('petugasSelect1').addEventListener('change', updateNamaPetugas);
+    document.getElementById('petugasSelect2').addEventListener('change', updateNamaPetugas);
+
+    function updateNamaPetugas() {
+        const select1 = document.getElementById('petugasSelect1');
+        const select2 = document.getElementById('petugasSelect2');
+        let nama = '';
+        if (select1.value) {
+            nama += select1.options[select1.selectedIndex].getAttribute('data-nama');
+        }
+        if (select2.value) {
+            nama += ', ' + select2.options[select2.selectedIndex].getAttribute('data-nama');
+        }
+        document.getElementById('petugasInput').value = nama;
     }
 
     // Handle Tombol Edit Petugas
@@ -576,52 +602,54 @@ document.addEventListener('DOMContentLoaded', function () {
             const layananId = e.target.dataset.layananId;
             const currentPetugas = e.target.dataset.currentPetugas || '';
             const currentNamaPetugas = e.target.dataset.currentNamaPetugas || '';
-            
-            elements.editPetugasLayananId.value = layananId;
-            
-            // Reset select dan coba cocokkan dengan petugas saat ini jika ada
-            elements.petugasSelect.selectedIndex = 0;
-            elements.petugasInput.value = currentNamaPetugas;
-            
+            document.getElementById('editPetugasLayananId').value = layananId;
+
+            // Reset select
+            document.getElementById('petugasSelect1').selectedIndex = 0;
+            document.getElementById('petugasSelect2').selectedIndex = 0;
+            document.getElementById('petugasInput').value = currentNamaPetugas;
+
+            // Jika sudah ada data petugas, isi select
             if (currentPetugas) {
-                for (let i = 0; i < elements.petugasSelect.options.length; i++) {
-                    if (elements.petugasSelect.options[i].value === currentPetugas) {
-                        elements.petugasSelect.selectedIndex = i;
-                        break;
-                    }
+                const petugasArr = currentPetugas.split(',');
+                if (petugasArr[0]) {
+                    document.getElementById('petugasSelect1').value = petugasArr[0].trim();
+                }
+                if (petugasArr[1]) {
+                    document.getElementById('petugasSelect2').value = petugasArr[1].trim();
                 }
             }
-            
+            updateNamaPetugas();
             elements.editPetugasModal.show();
             syncHiddenInputsWithTable();
         }
     });
 
     // Handle Tombol Simpan Petugas
-    elements.savePetugasBtn.addEventListener('click', function() {
-        const layananId = elements.editPetugasLayananId.value;
-        const selectedOption = elements.petugasSelect.options[elements.petugasSelect.selectedIndex];
-        
-        if (!selectedOption || !selectedOption.value) {
-            alert("Silakan pilih petugas yang valid.");
-            return;
+    document.getElementById('savePetugasBtn').addEventListener('click', function() {
+        const layananId = document.getElementById('editPetugasLayananId').value;
+        const select1 = document.getElementById('petugasSelect1');
+        const select2 = document.getElementById('petugasSelect2');
+        const petugasId1 = select1.value;
+        const petugasId2 = select2.value;
+        const namaPetugas1 = petugasId1 ? select1.options[select1.selectedIndex].getAttribute('data-nama') : '';
+        const namaPetugas2 = petugasId2 ? select2.options[select2.selectedIndex].getAttribute('data-nama') : '';
+        let displayText = namaPetugas1;
+        if (namaPetugas2) {
+            displayText += ', ' + namaPetugas2;
         }
-        
-        const petugasId = selectedOption.value;
-        const namaPetugas = selectedOption.getAttribute('data-nama');
-        const displayText = `${petugasId} - ${namaPetugas}`;
-        
+
         // Update table display
         const row = document.querySelector(`tr[data-layanan-id="${layananId}"]`);
         if (row) {
             row.cells[3].textContent = displayText;
-            row.dataset.petugasId = petugasId;
-            row.dataset.namaPetugas = namaPetugas;
+            row.dataset.petugasId = [petugasId1, petugasId2].filter(Boolean).join(',');
+            row.dataset.namaPetugas = displayText;
             // Update button data attributes
             const editBtn = row.querySelector('.btn-edit-petugas');
             if (editBtn) {
-                editBtn.dataset.currentPetugas = petugasId;
-                editBtn.dataset.currentNamaPetugas = namaPetugas;
+                editBtn.dataset.currentPetugas = [petugasId1, petugasId2].filter(Boolean).join(',');
+                editBtn.dataset.currentNamaPetugas = displayText;
             }
         }
         

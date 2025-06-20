@@ -14,6 +14,9 @@ class Petugas extends Model
     public $incrementing = false;
     protected $keyType = 'string';
     protected $fillable = ['id_petugas', 'nama_petugas', 'no_telp'];
+
+    public function orderDetails()
+    {
+        return $this->belongsToMany(OrderDetail::class, 'order_detail_petugas','id_order_detail', 'id_petugas', 'id_order_detail', 'id_petugas');
+    }
 }
-
-
