@@ -5,6 +5,7 @@ use App\Models\Jadwal;
 use App\Models\Order;
 use App\Models\OrderDetail;
 use App\Models\Petugas;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -24,18 +25,6 @@ class JadwalController extends Controller
     //     return view('jadwal.reschedule', compact('jadwal'));
     // }
 
-    public function destroy($id_order)
-    {
-        // Hapus order detail terlebih dahulu (jika ada relasi)
-        OrderDetail::where('id_order', $id_order)->delete();
-
-        // Hapus order utama
-        $order = Order::where('id_order', $id_order)->firstOrFail();
-        $order->delete();
-
-        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
-    }
-
     // public function rescheduleForm(Request $request, $id_order)
     // {
     //     $order = Order::with(['orderDetails.petugas', 'pelanggan'])->findOrFail($id_order);
@@ -43,6 +32,23 @@ class JadwalController extends Controller
     //     $petugas = Petugas::all();
     //     return view('jadwal.reschedule', compact('order', 'layanans', 'petugas'));
     // }
+
+    public function downloadWorkingOrder($id_order)
+    {
+        $order = Order::with([
+            'pelanggan',
+            'orderDetails.layananSubkategori.rootKategori',
+            'orderDetails.petugas'
+        ])->where('id_order', $id_order)->firstOrFail();
+
+        // Kirim ke view working_order.blade.php (buat view ini)
+        $pdf = PDF::loadView('jadwal.working_order', compact('order'));
+
+        // Nama file WO
+        $filename = 'WorkingOrder-' . $order->id_order . '.pdf';
+
+        return $pdf->download($filename);
+    }
 
     public function doReschedule(Request $request, $id_order)
     {
@@ -118,47 +124,47 @@ class JadwalController extends Controller
         return redirect()->route('jadwal.index')->with('success', 'Order berhasil di-reschedule.');
     }
 
-    public function reschedule($id_order)
-    {
-        // Ambil order lama
-        $oldOrder = Order::where('id_order', $id_order)->firstOrFail();
+    // public function reschedule($id_order)
+    // {
+    //     // Ambil order lama
+    //     $oldOrder = Order::where('id_order', $id_order)->firstOrFail();
 
-        // Generate ID order baru dengan format: ORD-ymdNNN
-        $now       = now();
-        $prefix    = 'ORD-' . $now->format('ym');
-        $lastOrder = Order::where('id_order', 'like', $prefix . '%')
-            ->orderBy('id_order', 'desc')
-            ->first();
-        $lastNumber = $lastOrder ? (int) substr($lastOrder->id_order, -3) : 0;
-        $newNumber  = $lastNumber + 1;
-        $newIdOrder = $prefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
+    //     // Generate ID order baru dengan format: ORD-ymdNNN
+    //     $now       = now();
+    //     $prefix    = 'ORD-' . $now->format('ym');
+    //     $lastOrder = Order::where('id_order', 'like', $prefix . '%')
+    //         ->orderBy('id_order', 'desc')
+    //         ->first();
+    //     $lastNumber = $lastOrder ? (int) substr($lastOrder->id_order, -3) : 0;
+    //     $newNumber  = $lastNumber + 1;
+    //     $newIdOrder = $prefix . str_pad($newNumber, 3, '0', STR_PAD_LEFT);
 
-        // Duplikasi order lama ke order baru
-        $newOrder                     = $oldOrder->replicate();
-        $newOrder->id_order           = $newIdOrder;
-        $newOrder->status             = 'request';                     // Atau status lain sesuai kebutuhan
-        $newOrder->tanggal_pengerjaan = $oldOrder->tanggal_pengerjaan; // Atur tanggal baru nanti
-        $newOrder->jam_pengerjaan     = $oldOrder->jam_pengerjaan;     // Atur jam baru nanti
-        $newOrder->save();
+    //     // Duplikasi order lama ke order baru
+    //     $newOrder                     = $oldOrder->replicate();
+    //     $newOrder->id_order           = $newIdOrder;
+    //     $newOrder->status             = 'request';                     // Atau status lain sesuai kebutuhan
+    //     $newOrder->tanggal_pengerjaan = $oldOrder->tanggal_pengerjaan; // Atur tanggal baru nanti
+    //     $newOrder->jam_pengerjaan     = $oldOrder->jam_pengerjaan;     // Atur jam baru nanti
+    //     $newOrder->save();
 
-        // Duplikasi order detail
-        $oldDetails = OrderDetail::where('id_order', $id_order)->get();
-        foreach ($oldDetails as $detail) {
-            $newDetail           = $detail->replicate();
-            $newDetail->id_order = $newIdOrder;
-            $newDetail->save();
-        }
+    //     // Duplikasi order detail
+    //     $oldDetails = OrderDetail::where('id_order', $id_order)->get();
+    //     foreach ($oldDetails as $detail) {
+    //         $newDetail           = $detail->replicate();
+    //         $newDetail->id_order = $newIdOrder;
+    //         $newDetail->save();
+    //     }
 
-        // (Opsional) Update status jadwal lama jika masih pakai tabel jadwals
-        $jadwal = Jadwal::where('id_order', $id_order)->first();
-        if ($jadwal) {
-            $jadwal->status = 'rescheduled';
-            $jadwal->save();
-        }
+    //     // (Opsional) Update status jadwal lama jika masih pakai tabel jadwals
+    //     $jadwal = Jadwal::where('id_order', $id_order)->first();
+    //     if ($jadwal) {
+    //         $jadwal->status = 'rescheduled';
+    //         $jadwal->save();
+    //     }
 
-        return redirect()->route('jadwal.rescheduleForm', $newIdOrder)
-            ->with('success', 'Order baru untuk reschedule berhasil dibuat. Silakan atur tanggal dan waktu baru.');
-    }
+    //     return redirect()->route('jadwal.rescheduleForm', $newIdOrder)
+    //         ->with('success', 'Order baru untuk reschedule berhasil dibuat. Silakan atur tanggal dan waktu baru.');
+    // }
 
     public function update(Request $request, $id_order)
     {
@@ -189,5 +195,17 @@ class JadwalController extends Controller
         }
 
         return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil diselesaikan.');
+    }
+
+    public function destroy($id_order)
+    {
+        // Hapus order detail terlebih dahulu (jika ada relasi)
+        OrderDetail::where('id_order', $id_order)->delete();
+
+        // Hapus order utama
+        $order = Order::where('id_order', $id_order)->firstOrFail();
+        $order->delete();
+
+        return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
     }
 }

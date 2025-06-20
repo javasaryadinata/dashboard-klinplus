@@ -55,15 +55,8 @@
         </div>
     </div>
 
-    {{-- Button Tambah Layanan --}}
-    <div class="btn-detail-layanan">
-        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderLayananModal">
-            Tambah Layanan
-        </button>
-    </div>
-
     <div class="container-table">
-        <div class="table-wrapper">
+        <div class="table-responsive">
             <table class="table" id="layananOrderTable">
                 <thead class="table-light">
                     <tr>
@@ -98,7 +91,7 @@
                             value="{{ $detail->durasi_layanan ?? 60 }}" style="width:80px;">
                         </td>
                         <td>
-                            {{ $namaPetugas }}
+                            {{ $detail->petugas->count() ? $detail->petugas->pluck('nama_petugas')->implode(', ') : '-' }}
                         </td>
                         </td>
                         <td>Rp{{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
@@ -116,6 +109,13 @@
                 </tbody>
             </table>
         </div>
+    </div>
+
+    {{-- Button Tambah Layanan --}}
+    <div class="btn-detail-layanan mb-4">
+        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderLayananModal">
+            Tambah Layanan
+        </button>
     </div>
 
     <!-- Hidden inputs container dengan data awal -->

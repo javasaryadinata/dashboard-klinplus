@@ -15,7 +15,7 @@ class RiwayatController extends Controller
                 'orderDetails.layananSubkategori.rootKategori',
                 'orderDetails.petugas'
             ])
-            ->whereIn('status', ['Rescheduled', 'Selesai', 'Cancel']) // bisa tambahkan status lain jika perlu
+            ->whereIn('status', ['Rescheduled', 'Selesai', 'Canceled'])
             ->orderByDesc('created_at')
             ->get();
 

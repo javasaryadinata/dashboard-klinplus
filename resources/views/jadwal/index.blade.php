@@ -7,7 +7,7 @@
 @section('content')
 <div class="container-table">
     <div class="table-wrapper">
-        <table class="staf-table">
+        <table class="jadwal-table">
             <thead>
                 <tr>
                     <th>No</th>
@@ -21,7 +21,7 @@
                     <th>Waktu Pengerjaan</th>
                     <th>Durasi</th>
                     <th>Waktu Selesai</th>
-                    <th>Nama Petugas</th>
+                    <th>Petugas</th>
                     <th>Status Pembayaran</th>
                     <th>Action</th>
                 </tr>
@@ -81,11 +81,19 @@
                         @if($orderDetails->count())
                             {{ $orderDetails->flatMap->petugas->pluck('nama_petugas')->unique()->implode(', ') }}
                         @else
-                            {{ $jadwal->nama_petugas ?? '-' }}
+                            -
                         @endif
                     </td>
-                    <td>{{ $jadwal->status_pembayaran ?? '-' }}</td>
+                    <td>{{ $jadwal->order->metode_pembayaran ?? '-' }}</td>
                     <td>
+                        @if(isset($jadwal->order) && \Carbon\Carbon::parse($jadwal->order->tanggal_pengerjaan)->isFuture())
+                            <a href="{{ route('orders.show', $jadwal->id_order) }}" class="btn btn-info table-action-button mb-1">
+                                Detail
+                            </a>
+                        @endif
+                        <a href="{{ route('jadwal.workingOrder', $jadwal->id_order) }}" class="btn btn-success table-action-button mb-1" target="_blank">
+                            Download WO
+                        </a>
                         <div class="d-flex flex-column gap-2">
                             <button type="button" class="btn btn-warning table-action-button" data-bs-toggle="modal" data-bs-target="#modalReschedule-{{ $jadwal->id_order }}">
                                 Re-schedule
@@ -94,6 +102,12 @@
                                 @csrf
                                 <button type="submit" class="btn btn-success table-action-button">
                                     Selesai
+                                </button>
+                            </form>
+                            <form action="{{ route('orders.cancel', $jadwal->order->id_order) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Batalkan jadwal ini?')">
+                                    Cancel
                                 </button>
                             </form>
                             <form action="{{ route('jadwal.destroy', $jadwal->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">

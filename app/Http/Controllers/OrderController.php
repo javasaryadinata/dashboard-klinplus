@@ -8,6 +8,7 @@ use App\Models\OrderDetail;
 use App\Models\OrderDetailPetugas;
 use App\Models\Pelanggan;
 use App\Models\Petugas;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -16,7 +17,7 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'request')->get();
+        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'Request')->get();
         $pelanggans = Pelanggan::all();
         $promos     = DB::table('promo')->get();
         return view('orders.index', compact('orders', 'pelanggans', 'promos'));
@@ -126,6 +127,14 @@ class OrderController extends Controller
         }
     }
 
+    public function invoicePdf($id_order)
+    {
+        $order = Order::with(['pelanggan', 'orderDetails.layananSubkategori', 'orderDetails.petugas'])->findOrFail($id_order);
+
+        $pdf = Pdf::loadView('orders.invoice_pdf', compact('order'));
+        return $pdf->download('Invoice_' . $order->id_order . '.pdf');
+    }
+
     public function destroy($id)
     {
         $order = Order::findOrFail($id);
@@ -140,6 +149,23 @@ class OrderController extends Controller
             DB::rollBack();
             return redirect()->back()->with('error', 'Gagal menghapus order: ' . $e->getMessage());
         }
+    }
+
+    public function cancel($id_order)
+    {
+        $order = Order::where('id_order', $id_order)->firstOrFail();
+
+        $order->status = 'Canceled';
+        $order->save();
+
+        // (Opsional) Kalau pakai tabel jadwals, update juga status di sana:
+        $jadwal = Jadwal::where('id_order', $id_order)->first();
+        if ($jadwal) {
+            $jadwal->status = 'Canceled';
+            $jadwal->save();
+        }
+
+        return redirect()->route('riwayat.index')->with('success', 'Order berhasil dibatalkan.');
     }
 
     public function approve(Request $request, $id_order)

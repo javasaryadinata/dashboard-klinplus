@@ -359,7 +359,11 @@ body {
 }
 
 /* Table Styles - Optimized */
-.table-wrapper,
+.table-wrapper {
+  overflow-x: auto;
+  min-width: 120%;
+  display: block;
+}
 .container-table {
   overflow-x: auto;
   padding-top: 10px;
@@ -372,6 +376,14 @@ body {
 .pricelist-table,
 .order-table {
   width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  border: 1px solid #f5f6f7;
+  table-layout: fixed;
+  background-color: white;
+}
+.jadwal-table {
+  min-width: 1200px;
   border-collapse: collapse;
   font-size: 14px;
   border: 1px solid #f5f6f7;
@@ -393,11 +405,24 @@ body {
   word-wrap: break-word;
   vertical-align: top; /* Untuk konten multi-baris */
 }
+.jadwal-table th,
+.jadwal-table td {
+  padding: 12px 16px;
+  text-align: left;
+  border: 1px solid #eaeaea;
+  word-wrap: break-word;
+  vertical-align: top; /* Untuk konten multi-baris */
+}
 
 .customer-table th,
 .staf-table th,
 .pricelist-table th,
 .order-table th {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 13px;
+}
+.jadwal-table th {
   font-weight: 600;
   color: #4a5568;
   font-size: 13px;
@@ -518,48 +543,47 @@ body {
 
 .order-table th:nth-child(2),
 .order-table td:nth-child(2) {
-  width: 8%; /* Status */
+  width: 8%; /* ID Order */
 }
 
 .order-table th:nth-child(3),
 .order-table td:nth-child(3) {
-  width: 10%; /* ID Order */
+  width: 10%; /* Nama Pelanggan */
 }
 
 .order-table th:nth-child(4),
 .order-table td:nth-child(4) {
-  width: 14%; /* Nama Pelanggan */
+  width: 7%; /* Tanggal Pengerjaan */
 }
 
-.order-table th:nth-child(5), /* Alamat */
+.order-table th:nth-child(5),
 .order-table td:nth-child(5) {
-  width: 20%; /* Deskripsi lebih lebar */
-  min-width: 200px; /* Lebar minimum */
+  width: 6%; /* Jam Pengerjaan */
 }
 
 .order-table th:nth-child(6),
 .order-table td:nth-child(6) {
-  width: 7%; /* Gmaps */
+  width: 14%; /* Alamat */
 }
 
 .order-table th:nth-child(7),
 .order-table td:nth-child(7) {
-  width: 12%; /* Catatan */
+  width: 6%; /* Total Harga */
 }
 
 .order-table th:nth-child(8),
 .order-table td:nth-child(8) {
-  width: 10%; /* Tanggal Pengerjaan */
+  width: 5%; /* Status Order */
 }
 
 .order-table th:nth-child(9),
 .order-table td:nth-child(9) {
-  width: 8%; /* Jam Pengerjaan */
+  width: 6%; /* Status Bayar */
 }
 
 .order-table th:nth-child(10),
 .order-table td:nth-child(10) {
-  width: 8%; /* Total Durasi */
+  width: 8%; /* Aksi */
 }
 
 .order-table th:nth-child(11),
@@ -577,6 +601,77 @@ body {
   width: 10%; /* Action */
 }
 
+/* Jadwal-Table Lebar kolom yang dioptimalkan */
+.jadwal-table th:nth-child(1),
+.jadwal-table td:nth-child(1) {
+  width: 0%; /* Nomor */
+}
+
+.jadwal-table th:nth-child(2),
+.jadwal-table td:nth-child(2) {
+  width: 2%; /* Status */
+}
+
+.jadwal-table th:nth-child(3),
+.jadwal-table td:nth-child(3) {
+  width: 3%; /* ID Order */
+}
+
+.jadwal-table th:nth-child(4),
+.jadwal-table td:nth-child(4) {
+  width: 4%; /* Nama Pelanggan */
+}
+
+.jadwal-table th:nth-child(5),
+.jadwal-table td:nth-child(5) {
+  width: 6%; /* Alamat */
+}
+
+.jadwal-table th:nth-child(6),
+.jadwal-table td:nth-child(6) {
+  width: 1%; /* Gmaps */
+}
+
+.jadwal-table th:nth-child(7),
+.jadwal-table td:nth-child(7) {
+  width: 3%; /* Catatan */
+}
+
+.jadwal-table th:nth-child(8),
+.jadwal-table td:nth-child(8) {
+  width: 3%; /* Tanggal Pengerjaan */
+}
+
+.jadwal-table th:nth-child(9),
+.jadwal-table td:nth-child(9) {
+  width: 3%; /* Waktu Pengerjaan */
+}
+
+.jadwal-table th:nth-child(10),
+.jadwal-table td:nth-child(10) {
+  width: 2%; /* Durasi */
+}
+
+.jadwal-table th:nth-child(11),
+.jadwal-table td:nth-child(11) {
+  width: 3%; /* Waktu Selesai */
+}
+
+.jadwal-table th:nth-child(12),
+.jadwal-table td:nth-child(12) {
+  width: 3%; /* Petugas */
+}
+
+.jadwal-table th:nth-child(13),
+.jadwal-table td:nth-child(13) {
+  width: 2%; /* Status Pembayaran */
+}
+
+.jadwal-table th:nth-child(14),
+.jadwal-table td:nth-child(14) {
+  width: 2%; /* Action */
+}
+
 .table-action-button {
   width: 100%;
   font-size: 12px;
@@ -585,6 +680,7 @@ body {
   text-align: center;
   font-weight: 500;
 }
+
 .btn-info {
   background-color: #3490dc;
   color: white;

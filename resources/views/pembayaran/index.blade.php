@@ -17,7 +17,7 @@
         <table class="staf-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>No</th>
                     <th>Id Order</th>
                     <th>Nama Pelanggan</th>
                     <th>Alamat</th>
@@ -61,18 +61,20 @@
                     <td>{{ $order->metode_pembayaran ?? '-' }}</td>
                     <td>{{ $order->tipe_pembayaran ?? '-' }}</td>
                     <td>
-                        <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-info btn-sm mb-1">
-                            Detail
+                        <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-info" title="Lihat Detail">
+                            <i class="fas fa-eye"></i> Detail
                         </a>
-                        <a href="{{ route('pembayaran.invoice', $order->id_order) }}" class="btn btn-secondary btn-sm mb-1">
-                            Invoice
+                        <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="btn btn-success" title="Invoice">
+                            <i class="fas fa-file-invoice"></i> Invoice
                         </a>
-                        <form action="{{ route('pembayaran.close', $order->id_order) }}" method="POST" style="display:inline;">
+                        @if($order->metode_pembayaran !== 'Lunas')
+                        <form action="{{ route('pembayaran.setLunas', $order->id_order) }}" method="POST" style="display:inline;">
                             @csrf
-                            <button type="submit" class="btn btn-success btn-sm" onclick="return confirm('Tutup pembayaran untuk order ini?')">
-                                Tutup
-                            </button>
+                            <button type="submit" class="btn btn-success">Lunas</button>
                         </form>
+                        @else
+                        <span class="badge bg-success">Lunas</span>
+                        @endif
                     </td>
                 </tr>
                 @endforeach

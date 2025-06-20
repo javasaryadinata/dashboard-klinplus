@@ -5,8 +5,8 @@
 @endsection
 
 @section('content')
-<div class="container mb-3">
-    <div class="btn-petugas">
+<div class="container">
+    <div class="btn btn-primary">
         <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderModal">
             Tambah Order Baru
         </button>
@@ -20,19 +20,16 @@
         <table class="order-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Status</th>
+                    <th>No</th>
                     <th>ID Order</th>
                     <th>Nama Pelanggan</th>
-                    <th>Alamat</th>
-                    <th>Gmaps</th>
-                    <th>Catatan</th>
                     <th>Tanggal Pengerjaan</th>
-                    <th>Waktu Pengerjaan</th>
-                    <th>Durasi</th>
-                    <th>Waktu Selesai</th>
-                    <th>Status Pembayaran</th>
-                    <th>Action</th>
+                    <th>Jam Pengerjaan</th>
+                    <th>Alamat</th>
+                    <th>Total Harga</th>
+                    <th>Status</th>
+                    <th>Status Bayar</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
@@ -44,53 +41,68 @@
                 @endphp
                 <tr>
                     <td>{{ $loop->iteration }}</td>
+                    <td>{{ $order->id_order }}</td>
+                    <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
+                    <td>{{ $order->tanggal_pengerjaan ? \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') : '-' }}</td>
+                    <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') : '-' }}</td>
+                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
                     <td>
-                        @php
-                            $status = strtolower($order->status);
-                            $statusColor = match ($status) {
-                                'request' => '#B0DB9C',
-                                're-schedule' => '#ffc107',
-                                default => '#dee2e6',
-                            };
-                        @endphp
-                        <span 
-                            class="badge px-2 py-2 text-dark" 
-                            style="background-color: {{ $statusColor }}; border-radius: 2rem;">
+                        Rp {{ number_format($order->total_harga, 0, ',', '.') }}
+                    </td>
+                    <td>
+                        <span class="badge px-2 py-1"
+                            style="background:{{ $order->status === 'Request' ? '#FFC107' : ($order->status === 'Scheduled' ? '#B0DB9C' : ($order->status === 'Selesai' ? '#3FD6CB' : '#ddd')) }};">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
-                    <td>{{ $order->id_order }}</td>
-                    <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
-                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
                     <td>
-                        @if($order->lokasi_gmaps ?? false)
-                            <a href="{{ $order->lokasi_gmaps }}" target="_blank">Lihat</a>
-                        @else
-                            -
-                        @endif
+                        @php
+                            $metode = $order->metode_pembayaran ? ucfirst($order->metode_pembayaran) : '-';
+                            $tipe = $order->tipe_pembayaran ? ucfirst($order->tipe_pembayaran) : '-';
+                        @endphp
+                        {{ $metode }} / {{ $tipe }}
                     </td>
-                    <td>{{ $order->catatan ?? '-' }}</td>
-                    <td>{{ $order->tanggal_pengerjaan }}</td>
-                    <td>{{ \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan)->format('H:i') }} WIB</td>
-                    <td>{{ $totalDurasi ? $totalDurasi . ' menit' : '-' }}</td>
-                    <td>{{ $jamSelesai }}</td>
-                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
                     <td>
                         <div class="d-flex flex-column gap-2">
                             <a href="{{ route('orders.detail', $order->id_order) }}" class="btn btn-info table-action-button">
-                                Layanan
+                                Detail
                             </a>
+                            <a href="{{ route('orders.invoicePdf', $order->id_order) }}" class="btn btn-info table-action-button" target="_blank">
+                                Download Invoice
+                            </a>
+                            @if($order->pelanggan && $order->pelanggan->telp_pelanggan)
+                                @php
+                                    // Format: 62xxxxxxxxxx tanpa +/spasi/tanda lain
+                                    $waNumber = preg_replace('/[^0-9]/', '', $order->pelanggan->telp_pelanggan);
+                                    if (substr($waNumber, 0, 1) == '0') {
+                                        $waNumber = '62' . substr($waNumber, 1); // ubah 08xxx jadi 628xxx
+                                    }
+                                @endphp
+                                <a href="https://wa.me/{{ $waNumber }}"
+                                target="_blank"
+                                class="btn btn-info table-action-button">
+                                    WhatsApp
+                                </a>
+                            @else
+                                <span class="text-muted">Tidak ada WA</span>
+                            @endif
+                            <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn btn-approve table-action-button">
+                                    Setuju
+                                </button>
+                            </form>
+                            <form action="{{ route('orders.cancel', $order->id_order) }}" method="POST" style="display:inline;">
+                                @csrf
+                                <button type="submit" class="btn btn-danger" onclick="return confirm('Batalkan order ini?')">
+                                    Cancel
+                                </button>
+                            </form>
                             <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-hapus table-action-button">
                                     Hapus
-                                </button>
-                            </form>
-                            <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-approve table-action-button">
-                                    Setuju
                                 </button>
                             </form>
                             {{-- <form action="{{ route('jadwal.reschedule', $order->id_order) }}" method="GET">

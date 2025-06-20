@@ -46,7 +46,7 @@
                     <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') . ' WIB' : '-' }}</td>
                     <td>
                         @foreach($order->orderDetails as $detail)
-                            {{ $detail->layananSubkategori->nama_subkategori ?? '-' }}<br>
+                            {{ ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') . ' - ' . ($detail->layananSubkategori->nama_subkategori ?? '-') }}<br>
                         @endforeach
                     </td>
                     <td>
