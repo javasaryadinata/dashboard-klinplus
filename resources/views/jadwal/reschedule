@@ -1,0 +1,60 @@
+@extends('layouts.app')
+
+@section('title-content')
+<h1>Reschedule Order</h1>
+@endsection
+
+@section('content')
+
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row mb-2">
+            <label class="col-sm-3 fw-semibold text-dark">ID Order Lama</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->id_order }}" readonly>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <label class="col-sm-3 fw-semibold text-dark">Nama Pelanggan</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->nama_pelanggan ?? '-' }}" readonly>
+            </div>
+        </div>
+        <div class="row mb-2">
+            <label class="col-sm-3 fw-semibold text-dark">Alamat Order</label>
+            <div class="col-sm-9">
+                <input type="text" class="form-control bg-light text-dark" value="{{ $order->alamat_lokasi }}" readonly>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="POST" action="{{ route('jadwal.doReschedule', $order->id_order) }}">
+    @csrf
+    <div class="mb-3">
+        <label for="tanggal_pengerjaan">Tanggal Pengerjaan Baru</label>
+        <input type="date" class="form-control" name="tanggal_pengerjaan" value="{{ old('tanggal_pengerjaan', $order->tanggal_pengerjaan) }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="jam_pengerjaan">Jam Pengerjaan Baru</label>
+        <input type="time" class="form-control" name="jam_pengerjaan" value="{{ old('jam_pengerjaan', $order->jam_pengerjaan) }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="total_harga">Total Harga</label>
+        <input type="number" class="form-control" name="total_harga" value="{{ old('total_harga', $order->total_harga) }}">
+    </div>
+    <div class="mb-3">
+        <label for="diskon">Diskon</label>
+        <input type="number" class="form-control" name="diskon" value="{{ old('diskon', $order->diskon) }}">
+    </div>
+    <div class="mb-3">
+        <label for="alasan_reschedule">Alasan Reschedule</label>
+        <textarea class="form-control" name="alasan_reschedule">{{ old('alasan_reschedule') }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="catatan">Catatan (boleh dikosongi)</label>
+        <textarea class="form-control" name="catatan">{{ old('catatan', $order->catatan) }}</textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Simpan Reschedule</button>
+</form>
+@endsection

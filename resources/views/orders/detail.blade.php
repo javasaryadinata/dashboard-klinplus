@@ -147,24 +147,44 @@
             </div>
         </div>
         
+        @php
+            // Untuk inisialisasi JS, agar konsisten
+            $totalAsli = $order->orderDetails->sum(fn($detail) => $detail->subtotal ?? $detail->harga);
+            $totalHargaInput = old('total_harga', $order->total_harga ?? $totalAsli);
+            $diskonInput = old('diskon', $order->diskon ?? 0);
+        @endphp
+
         <div class="row align-items-center mb-3">
             <label class="col-md-2 col-form-label fw-semibold text-dark">Diskon :</label>
             <div class="col-md-10">
-                <input type="text" class="form-control bg-light text-dark" 
-                       value="Rp {{ number_format($order->diskon, 0, ',', '.') }}" readonly>
+                <input
+                    type="number"
+                    name="diskon"
+                    min="0"
+                    id="diskon_input"
+                    class="form-control bg-light text-dark"
+                    value="{{ $diskonInput }}"
+                >
+                <div class="mt-1 text-muted" id="diskonRupiah">
+                    Rp {{ number_format($diskonInput, 0, ',', '.') }}
+                </div>
             </div>
         </div>
-        
+
         <div class="row align-items-center mb-3">
             <label class="col-md-2 col-form-label fw-semibold text-dark">Total Harga :</label>
             <div class="col-md-10">
-                @php
-                    $totalHarga = $order->orderDetails->sum(function($detail) {
-                        return $detail->subtotal ?? $detail->harga;
-                    });
-                @endphp
-                <input type="text" class="form-control bg-light text-dark" 
-                    value="Rp {{ number_format($totalHarga - $order->diskon, 0, ',', '.') }}" readonly>
+                <input
+                    type="number"
+                    name="total_harga"
+                    min="0"
+                    id="total_harga_input"
+                    class="form-control bg-light text-dark"
+                    value="{{ $totalHargaInput }}"
+                >
+                <div class="mt-1 text-muted" id="totalHargaRupiah">
+                    Rp {{ number_format($totalHargaInput, 0, ',', '.') }}
+                </div>
             </div>
         </div>
        
@@ -388,6 +408,35 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    function syncHiddenInputsWithTable() {
+        elements.hiddenInputsContainer.innerHTML = ''; // Bersihkan dulu
+
+        document.querySelectorAll('#layananOrderTable tbody tr').forEach((row, index) => {
+            const idOrderDetailInput = row.querySelector('input[name="id_order_detail[]"]');
+            const idOrderDetail = idOrderDetailInput ? idOrderDetailInput.value : '';
+            const layananId     = row.dataset.layananId;
+            const durasi        = row.querySelector('.durasi-input')?.value || '60';
+            const petugasId     = row.dataset.petugasId || '';
+            const harga         = row.cells[4].textContent.replace('Rp', '').replace(/\./g, '').trim() || '0';
+            const petugasArr    = petugasId.split(',').filter(Boolean);
+
+            // Masukkan hidden input id_order_detail, layanan, durasi, subtotal
+            elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
+                <input type="hidden" name="id_order_detail[]"  value="${idOrderDetail}">
+                <input type="hidden" name="layanans[]"         value="${layananId}">
+                <input type="hidden" name="durasi_layanan[]"   value="${durasi}">
+                <input type="hidden" name="subtotals[]"        value="${harga}">
+            `);
+
+            // Masukkan petugas sebagai array dua dimensi: petugas[0][], petugas[1][]
+            petugasArr.forEach(pid => {
+                elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
+                    <input type="hidden" name="petugas[${index}][]" value="${pid}">
+                `);
+            });
+        });
+    }
+
     document.querySelector('form').addEventListener('submit', function(e) {
         e.preventDefault();
         syncHiddenInputsWithTable();
@@ -550,35 +599,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    function syncHiddenInputsWithTable() {
-        elements.hiddenInputsContainer.innerHTML = ''; // Bersihkan dulu
-
-        document.querySelectorAll('#layananOrderTable tbody tr').forEach((row, index) => {
-            const idOrderDetailInput = row.querySelector('input[name="id_order_detail[]"]');
-            const idOrderDetail = idOrderDetailInput ? idOrderDetailInput.value : '';
-            const layananId     = row.dataset.layananId;
-            const durasi        = row.querySelector('.durasi-input')?.value || '60';
-            const petugasId     = row.dataset.petugasId || '';
-            const harga         = row.cells[4].textContent.replace('Rp', '').replace(/\./g, '').trim() || '0';
-            const petugasArr    = petugasId.split(',').filter(Boolean);
-
-            // Masukkan hidden input id_order_detail, layanan, durasi, subtotal
-            elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
-                <input type="hidden" name="id_order_detail[]"  value="${idOrderDetail}">
-                <input type="hidden" name="layanans[]"         value="${layananId}">
-                <input type="hidden" name="durasi_layanan[]"   value="${durasi}">
-                <input type="hidden" name="subtotals[]"        value="${harga}">
-            `);
-
-            // Masukkan petugas sebagai array dua dimensi: petugas[0][], petugas[1][]
-            petugasArr.forEach(pid => {
-                elements.hiddenInputsContainer.insertAdjacentHTML('beforeend', `
-                    <input type="hidden" name="petugas[${index}][]" value="${pid}">
-                `);
-            });
-        });
-    }
-
     // Handle Pilihan Petugas
     document.getElementById('petugasSelect1').addEventListener('change', updateNamaPetugas);
     document.getElementById('petugasSelect2').addEventListener('change', updateNamaPetugas);
@@ -668,6 +688,52 @@ document.addEventListener('DOMContentLoaded', function () {
         syncHiddenInputsWithTable();
         elements.editPetugasModal.hide();
     });
+
+    // Format Rupiah untuk Total Harga
+    (function() {
+        // Ambil nilai awal dari Blade
+        var totalAsli = {{ $totalAsli }};
+        var totalHargaAwal = {{ $totalHargaInput }};
+        var diskonAwal = {{ $diskonInput }};
+
+        function formatRupiah(val) {
+            let num = parseInt(val.replace(/\D/g, '')) || 0;
+            return 'Rp ' + num.toLocaleString('id-ID');
+        }
+
+        var diskonInput = document.getElementById('diskon_input');
+        var diskonDisplay = document.getElementById('diskonRupiah');
+        var totalInput = document.getElementById('total_harga_input');
+        var totalDisplay = document.getElementById('totalHargaRupiah');
+
+        // SET NILAI AWAL & FORMAT
+        if (diskonInput && diskonDisplay) {
+            diskonInput.value = diskonAwal;
+            diskonDisplay.textContent = formatRupiah(diskonInput.value);
+        }
+        if (totalInput && totalDisplay) {
+            totalInput.value = totalHargaAwal;
+            totalDisplay.textContent = formatRupiah(totalInput.value);
+        }
+
+        // Listener: update otomatis total harga jika diskon diubah
+        if (diskonInput && totalInput && totalDisplay && diskonDisplay) {
+            diskonInput.addEventListener('input', function () {
+                diskonDisplay.textContent = formatRupiah(diskonInput.value);
+                var diskon = parseInt(diskonInput.value) || 0;
+                var hargaSetelahDiskon = Math.max(0, totalAsli - diskon);
+                totalInput.value = hargaSetelahDiskon;
+                totalDisplay.textContent = formatRupiah(totalInput.value);
+            });
+        }
+
+        // Listener: format tampilan total harga saat diubah manual
+        if (totalInput && totalDisplay) {
+            totalInput.addEventListener('input', function () {
+                totalDisplay.textContent = formatRupiah(totalInput.value);
+            });
+        }
+    })();
 });
 </script>
 @endsection

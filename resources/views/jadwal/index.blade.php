@@ -27,12 +27,12 @@
                 </tr>
             </thead>
             <tbody>
-                @forelse($jadwals as $order)
+                @forelse($jadwals as $jadwal)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>
                         @php
-                            $status = strtolower($order->status);
+                            $status = strtolower($jadwal->status);
                             $statusColor = match ($status) {
                                 'Scheduled' => '#B0DB9C',
                                 'Rescheduled' => '#fff000',
@@ -42,48 +42,61 @@
                         <span 
                             class="badge px-2 py-2 text-dark" 
                             style="background-color: {{ $statusColor }}; border-radius: 2rem;">
-                            {{ ucfirst($order->status) }}
+                            {{ ucfirst($jadwal->status) }}
                         </span>
                     </td>
-                    <td>{{ $order->id_order }}</td>
-                    <td>{{ $order->pelanggan->nama_pelanggan }}</td>
-                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
+                    <td>{{ $jadwal->order->id_order ?? '-' }}</td>
+                    <td>{{ $jadwal->order && $jadwal->order->pelanggan ? $jadwal->order->pelanggan->nama_pelanggan : '-' }}</td>
+                    <td>{{ $jadwal->order->alamat_lokasi ?? '-' }}</td>
                     <td>
-                        @if($order->lokasi_gmaps)
-                            <a href="{{ $order->lokasi_gmaps }}" target="_blank">Lihat</a>
+                        @if(isset($jadwal->order) && $jadwal->order->lokasi_gmaps)
+                            <a href="{{ $jadwal->order->lokasi_gmaps }}" target="_blank">Lihat</a>
                         @else
                             -
                         @endif
                     </td>
-                    <td>{{ $order->catatan ?? '-' }}</td>
-                    <td>{{ $order->tanggal_pengerjaan }}</td>
-                    <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') . ' WIB' : '-' }}</td>
-                    <td>{{ $order->orderDetails->sum('durasi_layanan') ? $order->orderDetails->sum('durasi_layanan') . ' menit' : '-' }}</td>
+                    <td>{{ $jadwal->order->catatan ?? '-' }}</td>
+                    <td>{{ $jadwal->order->tanggal_pengerjaan ?? '-' }}</td>
                     <td>
                         @php
-                            $jamMulai = $order->jam_pengerjaan ? \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan) : null;
-                            $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+                            $jamPengerjaan = $jadwal->order->jam_pengerjaan ?? null;
+                        @endphp
+                        {{ $jamPengerjaan ? \Carbon\Carbon::parse($jamPengerjaan)->format('H:i') . ' WIB' : '-' }}
+                    </td>
+                    <td>
+                        @php
+                            $orderDetails = (isset($jadwal->order) && $jadwal->order->orderDetails) ? $jadwal->order->orderDetails : collect();
+                        @endphp
+                        {{ $orderDetails->sum('durasi_layanan') ? $orderDetails->sum('durasi_layanan') . ' menit' : '-' }}
+                    </td>
+                    <td>
+                        @php
+                            $jamMulai = (isset($jadwal->order) && $jadwal->order->jam_pengerjaan) ? \Carbon\Carbon::createFromFormat('H:i:s', $jadwal->order->jam_pengerjaan) : null;
+                            $totalDurasi = $orderDetails->sum('durasi_layanan');
                             $jamSelesai = ($jamMulai && $totalDurasi) ? $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i') . ' WIB' : '-';
                         @endphp
                         {{ $jamSelesai }}
                     </td>
-                    <td>{{ $order->orderDetails->pluck('petugas.nama_petugas')->unique()->implode(', ') ?: '-' }}</td>
-                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
+                    <td>
+                        @if($orderDetails->count())
+                            {{ $orderDetails->flatMap->petugas->pluck('nama_petugas')->unique()->implode(', ') }}
+                        @else
+                            {{ $jadwal->nama_petugas ?? '-' }}
+                        @endif
+                    </td>
+                    <td>{{ $jadwal->status_pembayaran ?? '-' }}</td>
                     <td>
                         <div class="d-flex flex-column gap-2">
-                            <form action="{{ route('jadwal.reschedule', $order->id_order) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn btn-warning table-action-button">
-                                    Re-schedule
-                                </button>
-                            </form>
-                            <form action="{{ route('jadwal.selesai', $order->id_order) }}" method="POST">
+                            <button type="button" class="btn btn-warning table-action-button" data-bs-toggle="modal" data-bs-target="#modalReschedule-{{ $jadwal->id_order }}">
+                                Re-schedule
+                            </button>
+                            <form action="{{ route('jadwal.selesai', $jadwal->id_order) }}" method="POST">
                                 @csrf
                                 <button type="submit" class="btn btn-success table-action-button">
                                     Selesai
                                 </button>
                             </form>
-                            <form action="{{ route('jadwal.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
+                            <form action="{{ route('jadwal.destroy', $jadwal->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus jadwal ini?')">
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="btn btn-danger table-action-button">
@@ -100,6 +113,46 @@
                 @endforelse
             </tbody>
         </table>
+
+        @foreach($jadwals as $jadwal)
+        <!-- Modal Reschedule -->
+        <div class="modal fade" id="modalReschedule-{{ $jadwal->id_order }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                <form method="POST" action="{{ route('jadwal.doReschedule', $jadwal->id_order) }}">
+                    @csrf
+                    <div class="modal-header">
+                    <h5 class="modal-title">Reschedule Order {{ $jadwal->id_order }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                    <div class="mb-2">
+                        <label>Tanggal Baru</label>
+                        <input type="date" class="form-control" name="tanggal_pengerjaan" value="{{ $jadwal->order->tanggal_pengerjaan }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label>Jam Baru</label>
+                        <input type="time" class="form-control" name="jam_pengerjaan" value="{{ $jadwal->order->jam_pengerjaan }}" required>
+                    </div>
+                    <div class="mb-2">
+                        <label>Alasan Reschedule</label>
+                        <textarea class="form-control" name="alasan_reschedule"></textarea>
+                    </div>
+                    <div class="mb-2">
+                        <label>Catatan</label>
+                        <textarea class="form-control" name="catatan">{{ $jadwal->order->catatan }}</textarea>
+                    </div>
+                    </div>
+                    <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan Reschedule</button>
+                    </div>
+                </form>
+                </div>
+            </div>
+        </div>
+        @endforeach
+
     </div>
 </div>
 @endsection

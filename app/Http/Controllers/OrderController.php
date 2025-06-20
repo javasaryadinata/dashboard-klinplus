@@ -1,19 +1,16 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Models\Jadwal;
 use App\Models\LayananSubkategori;
 use App\Models\Order;
 use App\Models\OrderDetail;
+use App\Models\OrderDetailPetugas;
 use App\Models\Pelanggan;
 use App\Models\Petugas;
-use App\Models\OrderDetailPetugas;
-// use App\Models\Layanan;
-// use App\Models\Jadwal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Fasade;
 
 class OrderController extends Controller
 {
@@ -96,7 +93,7 @@ class OrderController extends Controller
     {
         $order    = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori', 'orderDetails.petugas'])->findOrFail($id);
         $layanans = LayananSubkategori::with('rootKategori')->get();
-        $petugas = Petugas::all();
+        $petugas  = Petugas::all();
 
         return view('orders.detail', compact('order', 'layanans', 'petugas'));
     }
@@ -147,47 +144,53 @@ class OrderController extends Controller
 
     public function approve(Request $request, $id_order)
     {
-        $order = Order::findOrFail($id_order);
+        DB::beginTransaction();
+        try {
+            $order = Order::with(['pelanggan', 'orderDetails.petugas'])->findOrFail($id_order);
 
-        // Validasi: Pastikan order belum berstatus scheduled
-        if ($order->status === 'scheduled') {
-            return redirect()->route('orders.index')->with('error', 'Order ini sudah dijadwalkan.');
+            if ($order->status === 'scheduled') {
+                return redirect()->route('orders.index')->with('error', 'Order ini sudah dijadwalkan.');
+            }
+
+            // Update status order
+            $order->status = 'Scheduled';
+            $order->save();
+
+            // Hanya buat jadwal jika belum ada
+            $jadwal = Jadwal::where('id_order', $order->id_order)->first();
+            if (! $jadwal) {
+                $totalDurasi = $order->orderDetails->sum('durasi_layanan');
+                $jamMulai    = Carbon::parse($order->jam_pengerjaan);
+                $jamSelesai  = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
+
+                // Gabungkan semua nama petugas dari seluruh detail order, tidak duplikat
+                $namaPetugas = $order->orderDetails->flatMap->petugas->pluck('nama_petugas')->unique()->implode(', ');
+
+                Jadwal::create([
+                    'status'             => 'scheduled',
+                    'id_order'           => $order->id_order,
+                    'nama_pelanggan'     => $order->pelanggan->nama_pelanggan ?? '-',
+                    'alamat'             => $order->alamat_lokasi ?? '-',
+                    'gmaps'              => $order->lokasi_gmaps ?? null,
+                    'catatan'            => $order->catatan ?? null,
+                    'tanggal_pengerjaan' => $order->tanggal_pengerjaan,
+                    'waktu_pengerjaan'   => $order->jam_pengerjaan,
+                    'durasi'             => $totalDurasi,
+                    'waktu_selesai'      => $jamSelesai,
+                    'nama_petugas'       => $namaPetugas ?: '-',
+                    'status_pembayaran'  => $order->metode_pembayaran ?? '-',
+                ]);
+            }
+
+            DB::commit();
+            return redirect()->route('jadwal.index', $id_order)->with('success', 'Order berhasil disetujui dan dijadwalkan.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->route('orders.show', $id_order)->with('error', 'Gagal approve order: ' . $e->getMessage());
         }
-
-        // Hitung durasi dan waktu selesai
-        // $totalDurasi = $order->orderDetails->sum('durasi_layanan');
-        // $jamMulai = Carbon::parse($order->jam_pengerjaan);
-        // $jamSelesai = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
-
-        // $namaPetugas = $order->orderDetails
-        //     ->filter(fn($detail) => $detail->petugas)
-        //     ->pluck('petugas.nama_petugas')
-        //     ->unique()
-        //     ->implode(', ');
-
-        // // Buat entri di tabel jadwals
-        // Jadwal::create([
-        //     'status' => 'scheduled',
-        //     'id_order' => $order->id_order,
-        //     'nama_pelanggan' => $order->pelanggan->nama_pelanggan ?? '-',
-        //     'alamat' => $order->alamat_lokasi ?? '-',
-        //     'gmaps' => $order->lokasi_gmaps ?? null,
-        //     'catatan' => $order->catatan ?? null,
-        //     'tanggal_pengerjaan' => $order->tanggal_pengerjaan,
-        //     'waktu_pengerjaan' => $order->jam_pengerjaan,
-        //     'durasi' => $totalDurasi,
-        //     'waktu_selesai' => $jamSelesai,
-        //     'nama_petugas' => $namaPetugas ?: '-',
-        //     'status_pembayaran' => $order->metode_pembayaran ?? '-',
-        // ]);
-
-        $order->status = 'Scheduled';
-        $order->save();
-
-        return redirect()->route('orders.index')->with('success', 'Order berhasil disetujui dan dijadwalkan.');
     }
 
-    protected function generateOrderId(): string
+    public function generateOrderId(): string
     {
         $now    = Carbon::now();
         $prefix = 'ORD-' . $now->format('ym');
@@ -207,15 +210,17 @@ class OrderController extends Controller
         // dd($request->all());
 
         $request->validate([
-            'id_order_detail'     => 'required|array',
-            'tanggal_pengerjaan'  => 'required|date|after_or_equal:today',
-            'jam_pengerjaan'      => 'required|date_format:H:i',
-            'layanans'            => 'required|array',
-            'subtotals'           => 'required|array',
-            'durasi_layanan'      => 'required|array',
-            'petugas'             => 'required|array',
-            'metode_pembayaran'   => 'required|in:DP,Lunas',
-            'tipe_pembayaran'     => 'required|in:Transfer,Cash',
+            'id_order_detail'    => 'required|array',
+            'tanggal_pengerjaan' => 'required|date|after_or_equal:today',
+            'jam_pengerjaan'     => 'required|date_format:H:i',
+            'layanans'           => 'required|array',
+            'subtotals'          => 'required|array',
+            'durasi_layanan'     => 'required|array',
+            'petugas'            => 'required|array',
+            'diskon' => 'nullable|numeric|min:0',
+            'total_harga' => 'required|numeric|min:0',
+            'metode_pembayaran'  => 'required|in:DP,Lunas',
+            'tipe_pembayaran'    => 'required|in:Transfer,Cash',
         ]);
 
         try {
@@ -224,10 +229,12 @@ class OrderController extends Controller
             // Update order utama
             $order = Order::findOrFail($id_order);
             $order->update([
-                'tanggal_pengerjaan'   => $request->tanggal_pengerjaan,
-                'jam_pengerjaan'       => $request->jam_pengerjaan,
-                'metode_pembayaran'    => $request->metode_pembayaran,
-                'tipe_pembayaran'      => $request->tipe_pembayaran,
+                'tanggal_pengerjaan' => $request->tanggal_pengerjaan,
+                'jam_pengerjaan'     => $request->jam_pengerjaan,
+                'diskon' => $request->diskon ?? 0,
+                'total_harga' => $request->total_harga,
+                'metode_pembayaran'  => $request->metode_pembayaran,
+                'tipe_pembayaran'    => $request->tipe_pembayaran,
             ]);
 
             // Hapus order_detail yang sudah dihapus user di form
@@ -246,7 +253,7 @@ class OrderController extends Controller
                     $detail = OrderDetail::find($id_order_detail);
                     if ($detail) {
                         $detail->durasi_layanan = $durasi;
-                        $detail->harga = $subtotal;
+                        $detail->harga          = $subtotal;
                         $detail->save();
 
                         // Update petugas
@@ -254,7 +261,7 @@ class OrderController extends Controller
                         foreach (array_filter($petugasArr) as $id_petugas) {
                             OrderDetailPetugas::create([
                                 'id_order_detail' => $detail->id_order_detail,
-                                'id_petugas'      => $id_petugas
+                                'id_petugas'      => $id_petugas,
                             ]);
                         }
                     }
@@ -263,7 +270,7 @@ class OrderController extends Controller
                     $exists = OrderDetail::where('id_order', $id_order)
                         ->where('id_layanan_subkategori', $id_layanan)
                         ->exists();
-                    if (!$exists) {
+                    if (! $exists) {
                         // Detail baru, create detail
                         $detail = OrderDetail::create([
                             'id_order'               => $id_order,
@@ -275,7 +282,7 @@ class OrderController extends Controller
                         foreach (array_filter($petugasArr) as $id_petugas) {
                             OrderDetailPetugas::create([
                                 'id_order_detail' => $detail->id_order_detail,
-                                'id_petugas'      => $id_petugas
+                                'id_petugas'      => $id_petugas,
                             ]);
                         }
                     }
