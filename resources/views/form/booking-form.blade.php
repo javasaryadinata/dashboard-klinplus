@@ -148,8 +148,8 @@
 
                         <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
                             <template x-for="(layanan, index) in selectedLayanan" :key="layanan.id">
-                                <div class="px-4 py-2 rounded-lg shadow-md/20 bg-cyan-50 relative">
-                                    <button type="button" @click="removeLayanan(layanan.id)" class="absolute top-2 right-1 text-gray-500 hover:text-gray-600">
+                                <div class="px-4 py-2 rounded-lg shadow-md/20 bg-sky-50 relative">
+                                    <button type="button" @click="removeLayanan(layanan.id)" class="absolute top-2 right-1 text-gray-500 hover:bg-gray-200 rounded">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                         </svg>                                          

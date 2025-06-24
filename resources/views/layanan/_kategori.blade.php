@@ -8,12 +8,13 @@
         {{ session('kategori_error') }}
     </div>
 @endif
-<div class="d-flex mb-2">
+<div class="d-flex">
     <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahKategoriModal">
         Tambah Kategori Layanan
     </button>
 </div>
-<table class="layanan-kategori-table">
+<div class="container-table">
+    <table class="layanan-kategori-table">
     <thead>
         <tr>
             <th>No</th>
@@ -37,6 +38,7 @@
         @endforeach
     </tbody>
 </table>
+</div>
 
 <!-- Modal Tambah Kategori -->
 <div class="modal fade" id="tambahKategoriModal" tabindex="-1" aria-labelledby="tambahKategoriLabel" aria-hidden="true">

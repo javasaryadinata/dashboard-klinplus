@@ -1,5 +1,5 @@
 <div class="relative inline-block gap-y-4">
-    <button type="button" @click="showDropdown = !showDropdown" class="flex items-center space-x-1 h-8 border border-cyan text-cyan text-sm px-4 rounded-lg hover:bg-cyan-50">
+    <button type="button" @click="showDropdown = !showDropdown" class="flex items-center space-x-1 h-8 border border-cyan text-cyan text-sm px-4 rounded-lg hover:bg-sky-50">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
         </svg>
@@ -25,7 +25,7 @@
                         <div>
                             <div x-show="subIndex > 0" class="border-t border-gray-200 my-1 mx2"></div>
                             <div @click="addLayanan(sub.id, sub)"
-                            class="cursor-pointer px-2 py-1 hover:bg-cyan-100 rounded text-sm">
+                            class="cursor-pointer px-2 py-1 hover:bg-sky-50 rounded text-sm">
                             <span x-text="sub.nama_subkategori"></span> -
                             <span x-text="'Rp. ' + Intl.NumberFormat('id-ID').format(sub.harga)"></span>
                         </div>
