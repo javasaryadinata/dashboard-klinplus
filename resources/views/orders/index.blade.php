@@ -5,8 +5,8 @@
 @endsection
 
 @section('content')
-<div class="container">
-    <div class="btn btn-primary">
+<div class="container-btn-tambah">
+    <div class="d-flex justify-content-end">
         <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderModal">
             Tambah Order Baru
         </button>
@@ -23,8 +23,17 @@
                     <th>No</th>
                     <th>ID Order</th>
                     <th>Nama Pelanggan</th>
-                    <th>Tanggal Pengerjaan</th>
-                    <th>Jam Pengerjaan</th>
+                    <th>
+                        <a href="{{ route('orders.index', ['sort' => ($sort === 'desc' ? 'asc' : 'desc')]) }}" style="text-decoration:none; color:inherit;">
+                            Tanggal Pengerjaan
+                            @if($sort === 'desc')
+                                <i class="bi bi-arrow-down"></i>
+                            @else
+                                <i class="bi bi-arrow-up"></i>
+                            @endif
+                        </a>
+                    </th>
+                    <th>Waktu</th>
                     <th>Alamat</th>
                     <th>Total Harga</th>
                     <th>Status</th>
@@ -50,8 +59,8 @@
                         Rp {{ number_format($order->total_harga, 0, ',', '.') }}
                     </td>
                     <td>
-                        <span class="badge px-2 py-1"
-                            style="background:{{ $order->status === 'Request' ? '#FFC107' : ($order->status === 'Scheduled' ? '#B0DB9C' : ($order->status === 'Selesai' ? '#3FD6CB' : '#ddd')) }};">
+                        <span class="badge"
+                            style="background:{{ $order->status === 'Request' ? '#0096FF' : ($order->status === 'Scheduled' ? '#B0DB9C' : ($order->status === 'Selesai' ? '#3FD6CB' : '#ddd')) }};">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
@@ -63,12 +72,9 @@
                         {{ $metode }} / {{ $tipe }}
                     </td>
                     <td>
-                        <div class="d-flex flex-column gap-2">
-                            <a href="{{ route('orders.detail', $order->id_order) }}" class="btn btn-info table-action-button">
-                                Detail
-                            </a>
-                            <a href="{{ route('orders.invoicePdf', $order->id_order) }}" class="btn btn-info table-action-button" target="_blank">
-                                Download Invoice
+                        <div class="action-buttons">
+                            <a href="{{ route('orders.detail', $order->id_order) }}" class="btn-action btn-detail">
+                                <i class="bi bi-pencil-fill"></i>
                             </a>
                             @if($order->pelanggan && $order->pelanggan->telp_pelanggan)
                                 @php
@@ -80,29 +86,32 @@
                                 @endphp
                                 <a href="https://wa.me/{{ $waNumber }}"
                                 target="_blank"
-                                class="btn btn-info table-action-button">
-                                    WhatsApp
+                                class="btn-action btn-whatsapp">
+                                    <i class="bi bi-whatsapp"></i>
                                 </a>
                             @else
                                 <span class="text-muted">Tidak ada WA</span>
                             @endif
+                            <a href="{{ route('orders.invoicePdf', $order->id_order) }}" class="btn-action btn-invoice" target="_blank">
+                                <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                            </a>
                             <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
                                 @csrf
-                                <button type="submit" class="btn btn-approve table-action-button">
-                                    Setuju
+                                <button type="submit" class="btn-action btn-setuju">
+                                    <i class="bi bi-check-square-fill"></i>
                                 </button>
                             </form>
                             <form action="{{ route('orders.cancel', $order->id_order) }}" method="POST" style="display:inline;">
                                 @csrf
-                                <button type="submit" class="btn btn-danger" onclick="return confirm('Batalkan order ini?')">
-                                    Cancel
+                                <button type="submit" class="btn-action btn-cancel" onclick="return confirm('Batalkan order ini?')">
+                                    <i class="bi bi-x-square-fill"></i>
                                 </button>
                             </form>
                             <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?')">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-hapus table-action-button">
-                                    Hapus
+                                <button type="submit" class="btn-action btn-hapus">
+                                    <i class="bi bi-trash-fill"></i>
                                 </button>
                             </form>
                             {{-- <form action="{{ route('jadwal.reschedule', $order->id_order) }}" method="GET">
@@ -128,7 +137,7 @@
   <div class="modal-dialog modal-lg">
       <div class="modal-content">
           <div class="modal-header bg-white text-dark">
-              <h5 class="modal-title" id="tambahOrderModalLabel">Tambah Order Baru</h5>
+              <h4 class="modal-title" id="tambahOrderModalLabel">Tambah Order Baru</h4>
               <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <form id="formTambahOrder" method="POST" action="{{ route('orders.store') }}">
@@ -179,11 +188,13 @@
                                 </select>
                             </div>
                             <div class="col-2">
-                                <button type="button" class="btn btn-danger btn-remove-layanan" style="display:none;">Hapus</button>
+                                <button type="button" class="btn btn-hapus btn-remove-layanan" style="display:none;">
+                                    Hapus
+                                </button>
                             </div>
                         </div>
                     </div>
-                    <button type="button" class="btn btn-success btn-add-layanan mt-2">Tambah Layanan</button>
+                    <button type="button" class="btn btn-new btn-add-layanan mt-2">Tambah Layanan</button>
                 </div>
 
                 <div class="mb-3">
@@ -210,8 +221,8 @@
                 </div>
               </div>
               <div class="modal-footer">
-                  <button type="button" class="btn-back" data-bs-dismiss="modal">Batal</button>
-                  <button type="submit" class="btn-add">Tambahkan</button>
+                  <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
+                  <button type="submit" class="btn btn-add">Tambahkan</button>
               </div>
           </form>
       </div>

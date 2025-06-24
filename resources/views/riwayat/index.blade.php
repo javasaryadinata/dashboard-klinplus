@@ -5,9 +5,42 @@
 @endsection
 
 @section('content')
+<div class="d-flex justify-content-between align-items-center" style="gap:16px;">
+    <form method="GET" action="{{ route('riwayat.index') }}" autocomplete="off">
+        <div class="input-group">
+            <input 
+                type="text" 
+                class="form-control" 
+                name="search" 
+                placeholder="Cari"
+                value="{{ request('search') }}" 
+                id="search-input"
+                style="max-width: 400px;"
+            >
+
+            @if(request('search'))
+                <a href="{{ route('riwayat.index') }}" class="btn-clear-search" id="btn-clear-search">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
+            {{-- <button class="btn btn-new" type="submit">
+                <i class="bi bi-search"></i> Cari
+            </button> --}}
+        </div>
+    </form>
+    <form method="GET" action="{{ route('riwayat.index') }}" id="filter-status-form" class="filter-riwayat">
+        <label for="filter-status-select" style="margin-right:8px;white-space:nowrap;font-weight:500;">Filter</label>
+        <select name="status" class="form-select" style="max-width:200px; display:inline-block;" onchange="document.getElementById('filter-status-form').submit()">
+            <option value="">Semua</option>
+            <option value="Selesai" {{ request('status') == 'Selesai' ? 'selected' : '' }}>Selesai</option>
+            <option value="Rescheduled" {{ request('status') == 'Rescheduled' ? 'selected' : '' }}>Rescheduled</option>
+            <option value="Canceled" {{ request('status') == 'Canceled' ? 'selected' : '' }}>Canceled</option>
+        </select>
+    </form>
+</div>
 <div class="container-table">
     <div class="table-wrapper">
-        <table class="staf-table">
+        <table class="riwayat-table">
             <thead>
                 <tr>
                     <th>No</th>
@@ -15,27 +48,38 @@
                     <th>ID Order</th>
                     <th>Nama Pelanggan</th>
                     <th>Alamat</th>
-                    <th>Tanggal</th>
-                    <th>Jam</th>
+                    <th>
+                        Tanggal
+                        <a href="{{ route('riwayat.index', array_merge(request()->except('page'), [
+                            'sort' => ($sort === 'asc' ? 'desc' : 'asc'),
+                            'search' => $search,
+                            'status' => request('status')
+                        ])) }}" style="text-decoration:none; color:inherit;">
+                            @if($sort === 'asc')
+                                <i class="bi bi-arrow-up"></i>
+                            @else
+                                <i class="bi bi-arrow-down"></i>
+                            @endif
+                        </a>
+                    </th>
+                    <th>Waktu</th>
                     <th>Layanan</th>
                     <th>Petugas</th>
                     <th>Order Pengganti</th>
                     <th>Order Awal</th>
-                    <th>Alasan Reschedule</th>
+                    <th>Alasan</th>
                     <th>Harga</th>
                     <th>Diskon</th>
                 </tr>
             </thead>
             <tbody>
-                @forelse($riwayats as $order)
+                @forelse($orders as $order)
                 <tr>
                     <td>{{ $loop->iteration }}</td>
                     <td>
-                        <span class="badge px-2 py-2 text-dark" style="background-color:
-                            @if(strtolower($order->status) === 'rescheduled') #ffe066
-                            @elseif(strtolower($order->status) === 'selesai') #B0DB9C
-                            @else #eee @endif;
-                            border-radius: 2rem;">
+                        <span
+                            class="badge" 
+                            style="background:{{ $order->status === 'Scheduled' ? '#16C47F' : ($order->status === 'Rescheduled' ? '#FFD65A' : ($order->status === 'Selesai' ? '#00CC66' : '#ddd')) }};">
                             {{ ucfirst($order->status) }}
                         </span>
                     </td>
@@ -43,7 +87,7 @@
                     <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
                     <td>{{ $order->alamat_lokasi ?? '-' }}</td>
                     <td>{{ $order->tanggal_pengerjaan ?? '-' }}</td>
-                    <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') . ' WIB' : '-' }}</td>
+                    <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') : '-' }}</td>
                     <td>
                         @foreach($order->orderDetails as $detail)
                             {{ ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') . ' - ' . ($detail->layananSubkategori->nama_subkategori ?? '-') }}<br>

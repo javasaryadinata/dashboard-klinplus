@@ -15,12 +15,13 @@ use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'Request')->get();
+        $sort = $request->query('sort', 'desc');
+        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'Request')->orderBy('tanggal_pengerjaan', $sort)->get();
         $pelanggans = Pelanggan::all();
         $promos     = DB::table('promo')->get();
-        return view('orders.index', compact('orders', 'pelanggans', 'promos'));
+        return view('orders.index', compact('orders', 'pelanggans', 'promos', 'sort'));
     }
 
     // public function create()
@@ -174,7 +175,7 @@ class OrderController extends Controller
         try {
             $order = Order::with(['pelanggan', 'orderDetails.petugas'])->findOrFail($id_order);
 
-            if ($order->status === 'scheduled') {
+            if ($order->status === 'Scheduled') {
                 return redirect()->route('orders.index')->with('error', 'Order ini sudah dijadwalkan.');
             }
 
@@ -193,7 +194,7 @@ class OrderController extends Controller
                 $namaPetugas = $order->orderDetails->flatMap->petugas->pluck('nama_petugas')->unique()->implode(', ');
 
                 Jadwal::create([
-                    'status'             => 'scheduled',
+                    'status'             => 'Scheduled',
                     'id_order'           => $order->id_order,
                     'nama_pelanggan'     => $order->pelanggan->nama_pelanggan ?? '-',
                     'alamat'             => $order->alamat_lokasi ?? '-',
@@ -243,8 +244,8 @@ class OrderController extends Controller
             'subtotals'          => 'required|array',
             'durasi_layanan'     => 'required|array',
             'petugas'            => 'required|array',
-            'diskon' => 'nullable|numeric|min:0',
-            'total_harga' => 'required|numeric|min:0',
+            'diskon'             => 'nullable|numeric|min:0',
+            'total_harga'        => 'required|numeric|min:0',
             'metode_pembayaran'  => 'required|in:DP,Lunas',
             'tipe_pembayaran'    => 'required|in:Transfer,Cash',
         ]);
@@ -257,8 +258,8 @@ class OrderController extends Controller
             $order->update([
                 'tanggal_pengerjaan' => $request->tanggal_pengerjaan,
                 'jam_pengerjaan'     => $request->jam_pengerjaan,
-                'diskon' => $request->diskon ?? 0,
-                'total_harga' => $request->total_harga,
+                'diskon'             => $request->diskon ?? 0,
+                'total_harga'        => $request->total_harga,
                 'metode_pembayaran'  => $request->metode_pembayaran,
                 'tipe_pembayaran'    => $request->tipe_pembayaran,
             ]);

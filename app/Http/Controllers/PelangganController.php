@@ -15,11 +15,30 @@ class PelangganController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $pelanggans = Pelanggan::with('kota')->orderBy('created_at', 'asc')->paginate(10);
+        $search = $request->query('search');
+        $filterKota = $request->query('filter_kota');
+        $sort   = $request->query('sort', 'desc');
+
         $kotas = Kota::orderBy('nama_kota')->get();
-        return view('pelanggan.index', compact('pelanggans', 'kotas'));
+
+        $pelanggansQuery = Pelanggan::with('kota');
+
+        if ($search) {
+            $pelanggansQuery->where(function($q) use ($search) {
+                $q->where('id_pelanggan', 'like', "%$search%")
+                ->orWhere('nama_pelanggan', 'like', "%$search%");
+            });
+        }
+
+        if ($filterKota) {
+            $pelanggansQuery->where('id_kota', $filterKota);
+        }
+
+        $pelanggans = $pelanggansQuery->paginate(10)->appends($request->all());
+
+        return view('pelanggan.index', compact('pelanggans', 'kotas', 'search', 'filterKota', 'sort'));
     }
 
     /**

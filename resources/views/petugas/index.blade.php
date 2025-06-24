@@ -5,24 +5,30 @@
 @endsection
 
 @section('content')
-<div class="container">
-    {{-- <div class="btn-petugas">
-        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahPetugasModal">
-            Tambah Petugas
-        </button>
-    </div> --}}
-    <div class="mb-3">
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahPetugasModal">Tambah Petugas</button>
-    </div>
+<div class="d-flex justify-content-between align-items-center" style="gap:16px;">
+    <form method="GET" action="{{ route('petugas.index') }}" class="d-flex align-items-center" autocomplete="off" style="flex:1;">
+        <div class="input-group me-2" style="max-width:400px;">
+            <input type="text" class="form-control" name="search" placeholder="Cari"
+                value="{{ request('search') }}">
+            @if(request('search'))
+                <a href="{{ route('petugas.index') }}" class="btn-clear-search" id="btn-clear-search">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
+        </div>
+    </form>
+    <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahPetugasModal">
+        Tambah Petugas
+    </button>
 </div>
 <div class="container-table">
     <div class="table-wrapper">
         <table class="staf-table">
             <thead>
                 <tr>
-                    <th>#</th>
-                    <th>Status</th>
-                    <th>Id Petugas</th>
+                    <th>No</th>
+                    {{-- <th>Status</th> --}}
+                    <th>ID Petugas</th>
                     <th>Nama Petugas</th>
                     <th>Nomor Telepon</th>
                     <th>Action</th>
@@ -32,23 +38,23 @@
                 @forelse($petugas as $ptg)
                     <tr>
                        <td>{{ $loop->iteration }}</td>
-                       <td>
+                       {{-- <td>
                            @if($ptg->is_available)
                                <span class="badge bg-success text-white">Available</span>
                            @else
                                <span class="badge bg-warning text-white">Booked</span>
                            @endif
-                       </td>
+                       </td> --}}
                        <td>{{ $ptg->id_petugas }}</td>
                        <td>{{ $ptg->nama_petugas }}</td>
                        <td>{{ $ptg->no_telp }}</td>
                        <td>
-                        <div class="d-flex gap-2">
-                            <button type="button" class="edit-button" data-bs-toggle="modal" data-bs-target="#editPetugasModal{{ $ptg->id_petugas }}">Edit</button>
+                        <div class="action-buttons gap-2">
+                            <button type="button" class="btn btn-edit" data-bs-toggle="modal" data-bs-target="#editPetugasModal{{ $ptg->id_petugas }}">Edit</button>
                             <form action="{{ route('petugas.destroy', $ptg->id_petugas) }}" method="POST">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="delete-button" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus petugas ini?')">Hapus</button>
+                                <button type="submit" class="btn btn-hapus" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus petugas ini?')">Hapus</button>
                             </form>
                         </div>
                        </td>

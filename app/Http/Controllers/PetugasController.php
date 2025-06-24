@@ -9,11 +9,23 @@ use Illuminate\Support\Facades\Log;
 
 class PetugasController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         try {
-            $petugas = Petugas::orderBy('created_at', 'asc')->paginate(10);
-            return view('petugas.index', compact('petugas'));
+            $search = $request->query('search');
+
+            $petugasQuery = Petugas::orderBy('created_at', 'asc');
+
+            if ($search) {
+                $petugasQuery->where(function($q) use ($search) {
+                    $q->where('id_petugas', 'like', "%$search%")
+                    ->orWhere('nama_petugas', 'like', "%$search%");
+                });
+            }
+
+            $petugas = $petugasQuery->paginate(10)->withQueryString(); // <-- agar query search tetap saat paging
+
+            return view('petugas.index', compact('petugas', 'search'));
         } catch (\Exception $e) {
             Log::error('Error in PetugasController@index: ' . $e->getMessage());
             return redirect()->back()->with('error', 'Terjadi kesalahan saat memuat data petugas');

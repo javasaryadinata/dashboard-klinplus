@@ -5,28 +5,60 @@
 @endsection
 
 @section('content')
-<div class="container">
+{{-- <div class="container">
     <div class="btn-petugas">
         <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahPembayaranModal">
             Tambah Pembayaran Baru
         </a>
     </div>
-</div>
+</div> --}}
+<form method="GET" action="{{ route('pembayaran.index') }}">
+    <div class="input-group">
+        <input 
+            type="text" 
+            class="form-control" 
+            name="search" 
+            placeholder="Cari"
+            value="{{ request('search') }}" 
+            id="search-input"
+            style="max-width: 300px;"
+        >
+        @if(request('search'))
+            <a href="{{ route('pembayaran.index') }}" class="btn-clear-search" id="btn-clear-search" style="display:flex; align-items:center; padding: 0 10px;">
+                <i class="bi bi-x-lg"></i>
+            </a>
+        @endif
+        {{-- <button class="btn btn-new" type="submit">
+            <i class="bi bi-search"></i> Cari
+        </button> --}}
+    </div>
+</form>
 <div class="container-table">
     <div class="table-wrapper">
-        <table class="staf-table">
+        <table class="pembayaran-table">
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Id Order</th>
+                    <th>ID Order</th>
                     <th>Nama Pelanggan</th>
                     <th>Alamat</th>
                     <th>Layanan</th>
-                    <th>Tanggal Pembersihan</th>
+                    <th>
+                        Tanggal
+                        <a href="{{ route('pembayaran.index', array_merge(request()->except('page'), [
+                            'sort' => ($sort === 'asc' ? 'desc' : 'asc'), 
+                            'search' => $search
+                        ])) }}" style="text-decoration:none; color:inherit;">
+                            @if($sort === 'asc')
+                                <i class="bi bi-arrow-up"></i>
+                            @else
+                                <i class="bi bi-arrow-down"></i>
+                            @endif
+                        </a>
+                    </th>
                     <th>Diskon</th>
                     <th>Total Harga</th>
                     <th>Status Pembayaran</th>
-                    <th>Tipe Pembayaran</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -47,7 +79,7 @@
                         @endphp
                         {{ $layananList ?: '-' }}
                     </td>
-                    <td>{{ $order->tanggal_pengerjaan }}</td>
+                    <td>{{ $order->tanggal_pengerjaan ? \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') : '-'  }}</td>
                     <td>
                         {{-- Diskon, jika ada field diskon di order --}}
                         {{ $order->diskon ? 'Rp ' . number_format($order->diskon, 0, ',', '.') : '-' }}
@@ -58,23 +90,32 @@
                         @endphp
                         Rp {{ number_format($totalHarga, 0, ',', '.') }}
                     </td>
-                    <td>{{ $order->metode_pembayaran ?? '-' }}</td>
-                    <td>{{ $order->tipe_pembayaran ?? '-' }}</td>
                     <td>
-                        <a href="{{ route('orders.show', $order->id_order) }}" class="btn btn-info" title="Lihat Detail">
-                            <i class="fas fa-eye"></i> Detail
-                        </a>
-                        <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="btn btn-success" title="Invoice">
-                            <i class="fas fa-file-invoice"></i> Invoice
-                        </a>
-                        @if($order->metode_pembayaran !== 'Lunas')
-                        <form action="{{ route('pembayaran.setLunas', $order->id_order) }}" method="POST" style="display:inline;">
-                            @csrf
-                            <button type="submit" class="btn btn-success">Lunas</button>
-                        </form>
-                        @else
-                        <span class="badge bg-success">Lunas</span>
-                        @endif
+                        @php
+                            $metode = $order->metode_pembayaran ? ucfirst($order->metode_pembayaran) : '-';
+                            $tipe = $order->tipe_pembayaran ? ucfirst($order->tipe_pembayaran) : '-';
+                        @endphp
+                        {{ $metode }} / {{ $tipe }}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <a href="{{ route('orders.show', $order->id_order) }}" class="btn-action btn-detail" title="Lihat Detail">
+                                <i class="bi bi-pencil-fill"></i>
+                            </a>
+                            <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="btn-action btn-invoice" title="Invoice">
+                                <i class="bi bi-file-earmark-arrow-down-fill"></i>
+                            </a>
+                            @if($order->metode_pembayaran !== 'Lunas')
+                            <form action="{{ route('pembayaran.setLunas', $order->id_order) }}" method="POST">
+                                @csrf
+                                <button type="submit" class="btn-action btn-setuju">
+                                    <i class="bi bi-check-square-fill"></i>
+                                </button>
+                            </form>
+                            @else
+                            <span class="badge bg-success">Lunas</span>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach

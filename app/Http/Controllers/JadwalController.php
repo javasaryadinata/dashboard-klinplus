@@ -11,12 +11,47 @@ use Illuminate\Support\Facades\DB;
 
 class JadwalController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $jadwals = Jadwal::with(['order.pelanggan', 'order.orderDetails.layananSubkategori.rootKategori', 'order.orderDetails.petugas'])
-            ->whereIn('status', ['Scheduled'])
-            ->get();
-        return view('jadwal.index', compact('jadwals'));
+        $search = $request->query('search');
+        $sort = $request->query('sort', 'desc');
+        $sortDurasi = $request->query('sort_durasi', null);
+        
+        $jadwalsQuery = Jadwal::with([
+                'order.pelanggan',
+                'order.orderDetails.layananSubkategori.rootKategori',
+                'order.orderDetails.petugas'
+            ])
+            ->where('status', 'Scheduled')
+            ->when($search, function ($query, $search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('id_order', 'like', "%$search%")
+                    ->orWhereHas('order.pelanggan', function($sub) use ($search) {
+                        $sub->where('nama_pelanggan', 'like', "%$search%");
+                    })
+                    ->orWhereHas('order', function($sub) use ($search) {
+                        $sub->where('alamat_lokasi', 'like', "%$search%");
+                        $sub->orWhere('metode_pembayaran', 'like', "%$search%");
+                    })
+                    ->orWhereHas('order.orderDetails.petugas', function($sub) use ($search) {
+                        $sub->where('nama_petugas', 'like', "%$search%");
+                    });
+                });
+            })
+            ->orderBy(Order::select('tanggal_pengerjaan')
+                ->whereColumn('orders.id_order', 'jadwals.id_order'),
+                $sort === 'asc' ? 'asc' : 'desc'
+            );
+
+        $jadwals = $jadwalsQuery->get();
+
+        if ($sortDurasi) {
+            $jadwals = $jadwals->sortBy(function($jadwal) {
+                return $jadwal->order ? $jadwal->order->orderDetails->sum('durasi_layanan') : 0;
+            }, SORT_REGULAR, $sortDurasi === 'desc')->values();
+        }
+
+        return view('jadwal.index', compact('jadwals', 'search', 'sort', 'sortDurasi'));
     }
 
     // public function show($id_order)

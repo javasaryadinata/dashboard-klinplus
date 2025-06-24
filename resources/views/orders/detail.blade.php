@@ -20,37 +20,37 @@
 
         <!-- Informasi Pelanggan -->
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">ID Order</label>
+            <label class="col-md-2 col-form-label fw-semibold">ID Order</label>
             <div class="col-md-10">
-                <input type="text" class="form-control bg-light text-dark" value="{{ $order->id_order }}" readonly>
+                <input type="text" class="form-control bg-light" value="{{ $order->id_order }}" readonly>
             </div>
         </div>
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Nama Pelanggan :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Nama Pelanggan :</label>
             <div class="col-md-10">
-                <input type="text" class="form-control bg-light text-dark" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
+                <input type="text" class="form-control bg-light" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
             </div>
         </div>
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Lokasi Pengerjaan :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Lokasi Pengerjaan :</label>
             <div class="col-md-10">
-                <input type="text" class="form-control bg-light text-dark" value="{{ $order->alamat_lokasi ?? '-' }}" readonly>
+                <input type="text" class="form-control bg-light" value="{{ $order->alamat_lokasi ?? '-' }}" readonly>
             </div>
         </div>
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Tanggal Pengerjaan :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Tanggal Pengerjaan :</label>
             <div class="col-md-10">
-                <input type="date" class="form-control bg-light text-dark" name="tanggal_pengerjaan" value="{{ $order->tanggal_pengerjaan }}" required>
+                <input type="date" class="form-control bg-light" name="tanggal_pengerjaan" value="{{ $order->tanggal_pengerjaan }}" required>
             </div>
         </div>
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Waktu Pengerjaan :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Waktu Pengerjaan :</label>
             <div class="col-md-10">
-                <input type="time" class="form-control bg-light text-dark" name="jam_pengerjaan" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" required>
+                <input type="time" class="form-control bg-light" name="jam_pengerjaan" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" required>
             </div>
         </div>
     </div>
@@ -94,15 +94,17 @@
                             {{ $detail->petugas->count() ? $detail->petugas->pluck('nama_petugas')->implode(', ') : '-' }}
                         </td>
                         </td>
-                        <td>Rp{{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
+                        <td>Rp {{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
                         <td>
-                            <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
+                            <button type="button" class="btn btn-edit-petugas" 
                                 data-layanan-id="{{ $detail->id_layanan_subkategori }}"
                                 data-current-petugas="{{ $idPetugas }}"
                                 data-current-nama-petugas="{{ $namaPetugas }}">
                                 Edit Petugas
                             </button>
-                            <button type="button" class="btn btn-sm btn-danger btn-delete">Hapus</button>
+                            <button type="button" class="btn btn-hapus-layanan">
+                                <i class="bi bi-trash-fill"></i>
+                            </button>
                         </td>
                     </tr>
                     @endforeach
@@ -134,16 +136,16 @@
     <!-- Informasi Order -->
     <div class="detail-table">
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Total Durasi :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Total Durasi :</label>
             <div class="col-md-10">
-                <input type="text" id="estimasi-durasi" class="form-control bg-light text-dark" value="0" readonly>
+                <input type="text" id="estimasi-durasi" class="form-control bg-light" value="0" readonly>
             </div>
         </div>
         
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Jam Selesai :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Jam Selesai :</label>
             <div class="col-md-10">
-                 <input type="text" id="jam-selesai" class="form-control bg-light text-dark" value="" readonly>
+                 <input type="text" id="jam-selesai" class="form-control bg-light" value="" readonly>
             </div>
         </div>
         
@@ -155,14 +157,14 @@
         @endphp
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Diskon :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Diskon :</label>
             <div class="col-md-10">
                 <input
                     type="number"
                     name="diskon"
                     min="0"
                     id="diskon_input"
-                    class="form-control bg-light text-dark"
+                    class="form-control bg-light"
                     value="{{ $diskonInput }}"
                 >
                 <div class="mt-1 text-muted" id="diskonRupiah">
@@ -172,14 +174,14 @@
         </div>
 
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Total Harga :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Total Harga :</label>
             <div class="col-md-10">
                 <input
                     type="number"
                     name="total_harga"
                     min="0"
                     id="total_harga_input"
-                    class="form-control bg-light text-dark"
+                    class="form-control bg-light"
                     value="{{ $totalHargaInput }}"
                 >
                 <div class="mt-1 text-muted" id="totalHargaRupiah">
@@ -190,11 +192,11 @@
        
         <!-- Metode Pembayaran -->
         <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold text-dark">Status Pembayaran :</label>
+            <label class="col-md-2 col-form-label fw-semibold">Status Pembayaran :</label>
             
             <!-- Left Column (DP/Lunas) -->
             <div class="col-md-5">
-                <select class="form-select bg-light text-dark" name="metode_pembayaran">
+                <select class="form-select bg-light" name="metode_pembayaran">
                     <option value="DP" {{ $order->metode_pembayaran === 'DP' ? 'selected' : '' }}>DP (Down Payment)</option>
                     <option value="Lunas" {{ $order->metode_pembayaran === 'Lunas' ? 'selected' : '' }}>Lunas</option>
                 </select>
@@ -202,7 +204,7 @@
             
             <!-- Right Column (Transfer/Cash) -->
             <div class="col-md-5">
-                <select class="form-select bg-light text-dark" name="tipe_pembayaran">
+                <select class="form-select bg-light" name="tipe_pembayaran">
                     <option value="Transfer" {{ $order->tipe_pembayaran === 'Transfer' ? 'selected' : '' }}>Transfer</option>
                     <option value="Cash" {{ $order->tipe_pembayaran === 'Cash' ? 'selected' : '' }}>Cash</option>
                 </select>
@@ -213,10 +215,10 @@
     <!-- Footer Buttons -->
     <div class="card-footer d-flex justify-content-between">
         <a href="{{ route('orders.index') }}" class="btn btn-back">
-            <i class="fas fa-arrow-left me-1"></i> Kembali
+            Kembali
         </a>
         <button type="submit" class="btn btn-save">
-            <i class="fas fa-save me-1"></i> Simpan Perubahan
+            Simpan Perubahan
         </button>
     </div>
 </form>
@@ -236,7 +238,7 @@
                 <div class="mb-3">
                     <label for="layanan_id" class="form-label">Pilih Layanan</label>
                     <select class="form-select" id="layanan_id" required>
-                        <option value="" selected disabled>-- Pilih Layanan --</option>
+                        <option value="" selected disabled>Pilih Layanan</option>
                         @foreach($layanans as $layanan)
                             <option 
                                 value="{{ $layanan->id }}"
@@ -266,8 +268,8 @@
                 </div> --}}
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="saveLayananBtn">Tambahkan</button>
+                <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-save" id="saveLayananBtn">Tambahkan</button>
             </div>
         </div>
     </div>
@@ -286,7 +288,7 @@
                 <div class="mb-3">
                     <label for="petugasSelect1" class="form-label">Pilih Petugas 1</label>
                     <select class="form-select" id="petugasSelect1" required>
-                        <option value="" selected disabled>-- Pilih Petugas 1 --</option>
+                        <option value="" selected disabled>Pilih Petugas 1</option>
                         @foreach($petugas as $ptg)
                             <option value="{{ $ptg->id_petugas }}" data-nama="{{ $ptg->nama_petugas }}">
                                 {{ $ptg->id_petugas }} - {{ $ptg->nama_petugas }}
@@ -297,7 +299,7 @@
                 <div class="mb-3">
                     <label for="petugasSelect2" class="form-label">Pilih Petugas 2 (Opsional)</label>
                     <select class="form-select" id="petugasSelect2">
-                        <option value="" selected>-- Pilih Petugas 2 --</option>
+                        <option value="" selected>Pilih Petugas 2<option>
                         @foreach($petugas as $ptg)
                             <option value="{{ $ptg->id_petugas }}" data-nama="{{ $ptg->nama_petugas }}">
                                 {{ $ptg->id_petugas }} - {{ $ptg->nama_petugas }}
@@ -311,8 +313,8 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                <button type="button" class="btn btn-primary" id="savePetugasBtn">Simpan</button>
+                <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
+                <button type="button" class="btn btn-save" id="savePetugasBtn">Simpan</button>
             </div>
         </div>
     </div>

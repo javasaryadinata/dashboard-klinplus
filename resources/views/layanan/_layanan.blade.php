@@ -1,6 +1,3 @@
-<div class="mb-3">
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahLayananModal">Tambah Layanan</button>
-</div>
 @if(session('layanan_success'))
     <div class="alert alert-success alert-dismissible fade show" id="layananAlert">
         {{ session('layanan_success') }}
@@ -11,10 +8,17 @@
         {{ session('layanan_error') }}
     </div>
 @endif
-<table class="table table-bordered">
+<div class="container-btn-tambah">
+    <div class="d-flex">
+        <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahLayananModal">Tambah Layanan</button>
+    </div>
+</div>
+<div class="container-table">
+    <div class="table-wrapper">
+        <table class="layanan-table">
     <thead>
         <tr>
-            <th>#</th>
+            <th>No</th>
             <th>Kategori</th>
             <th>Nama Layanan</th>
             <th>Harga</th>
@@ -31,19 +35,22 @@
                 <td>{{ $sub->nama_subkategori }}</td>
                 <td>Rp {{ number_format($sub->harga, 0, ',', '.') }}</td>
                 <td>
-                    <!-- Edit & Delete Button -->
-                    <button type="button" class="btn btn-warning btn-sm" data-bs-toggle="modal" data-bs-target="#editLayananModal{{ $sub->id }}">Edit</button>
-                    <form action="{{ route('layanan.destroy', $sub->id) }}" method="POST" style="display:inline;">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Yakin hapus?')">Hapus</button>
-                    </form>
+                    <div class="action-buttons gap-2">
+                        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#editLayananModal{{ $sub->id }}">Edit</button>
+                        <form action="{{ route('layanan.destroy', $sub->id) }}" method="POST" style="display:inline;">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-hapus" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             @endforeach
         @endforeach
     </tbody>
 </table>
+    </div>
+</div>
 
 <!-- Modal Tambah Layanan -->
 <div class="modal fade" id="tambahLayananModal" tabindex="-1" aria-labelledby="tambahLayananModalLabel" aria-hidden="true">
@@ -75,8 +82,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Tambahkan</button>
+                    <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-add">Tambahkan</button>
                 </div>
             </form>
         </div>
@@ -115,8 +122,8 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
+                        <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn btn-save">Simpan Perubahan</button>
                     </div>
                 </form>
             </div>

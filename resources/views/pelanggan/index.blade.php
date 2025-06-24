@@ -5,20 +5,50 @@
 @endsection
 
 @section('content')
-<div class="container">
-    <div class="btn-pelanggan">
+<div class="container-btn-tambah mb-2">
+    <div class="d-flex justify-content-end">
         <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahPelangganModal">
             Tambah Pelanggan
         </button>
     </div>
 </div>
+<div class="d-flex align-items-center justify-content-between" style="gap:16px;">
+    <form method="GET" action="{{ route('pelanggan.index') }}" class="d-flex align-items-center flex-grow-1" autocomplete="off" style="max-width: 400px;">
+        <div class="input-group">
+            <input type="text" class="form-control" name="search" placeholder="Cari" value="{{ request('search') }}">
+            @if(request('search'))
+                <a href="{{ route('pelanggan.index') }}" class="btn-clear-search" id="btn-clear-search">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
+        </div>
+    </form>
+    <div class="d-flex align-items-center ms-3">
+        <span class="me-2">Filter</span>
+        <form method="GET" action="{{ route('pelanggan.index') }}" class="mb-0">
+            <select class="form-select" name="filter_kota" onchange="this.form.submit()" style="width:auto; min-width: 120px;">
+                <option value="">Semua</option>
+                @foreach($kotas as $kota)
+                    <option value="{{ $kota->id_kota }}" {{ request('filter_kota') == $kota->id_kota ? 'selected' : '' }}>
+                        {{ $kota->nama_kota }}
+                    </option>
+                @endforeach
+            </select>
+            {{-- Kirim search juga agar filter & search bisa bersamaan --}}
+            @if(request('search'))
+                <input type="hidden" name="search" value="{{ request('search') }}">
+            @endif
+        </form>
+    </div>
+</div>
+
 
 <div class="container-table">
     <div class="table-wrapper">
         <table class="customer-table">
             <thead>
                 <tr>
-                    <th>#</th>
+                    <th>No</th>
                     <th>ID Pelanggan</th>
                     <th>Nama Pelanggan</th>
                     <th>No. Telepon</th>
@@ -39,9 +69,9 @@
                     <td>{{ $pelanggan->kota->nama_kota ?? '-' }}</td>
                     <td>{{ Str::limit($pelanggan->alamat_lokasi, 30) }}</td>
                     <td>
-                        <div class="d-flex gap-2">
+                        <div class="action-buttons gap-2">
                             <button type="button"
-                                class="edit-button btn btn-link p-0"
+                                class="btn btn-edit"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editPelangganModal{{ $pelanggan->id_pelanggan }}">
                                 <i class="fas fa-edit"></i> Edit
@@ -49,7 +79,7 @@
                             <form action="{{ route('pelanggan.destroy', $pelanggan->id_pelanggan) }}" method="POST" class="delete-form">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="delete-button" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')">
+                                <button type="submit" class="btn btn-hapus" title="Hapus" onclick="return confirm('Apakah Anda yakin ingin menghapus pelanggan ini?')">
                                     <i class="fas fa-trash"></i> Hapus
                                 </button>
                             </form>
