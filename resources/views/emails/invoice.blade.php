@@ -85,11 +85,11 @@
             margin-top: 20px;
         }
         .footer {
-            background-color: #ececec;
+            background-color: #47c0ec1e;
             text-align: center;
             padding: 30px;
             font-size: 14px;
-            color: #3f3f3f;
+            color: #333;
         }
         .copyright {
             font-size: 12px;
@@ -148,15 +148,16 @@
 
             <p class="note">
                 Kami akan menghubungi anda melalui whatsapp untuk melakukan pembayaran DP dan memproses booking anda. Pastikan nomor whatsapp anda sudah benar, apabila nomor whatsapp anda salah bisa hubungi kami melalui whatsapp atau klik link
-                <a href="https://wa.me/6281331155778">klinplus/bantuan</a>
+                <a href="https://wa.me/6281331155778">klinplus.id/bantuan</a>
             </p>
-            <p class="note">Terimakasih!</p>
+            <p class="note">Terimakasih,</p>
             <p>Tim Klinplus</p>
         </div>
         <div class="footer"> 
             <span>
-                Ada pertanyaan? hubungi kami melalui WhatsApp atau klik link
-                <a href="https://wa.me/6281331155778">klinplus/bantuan</a>
+                Ada pertanyaan? hubungi kami melalui WhatsApp<br>
+                atau klik link
+                <a href="https://wa.me/6281331155778">klinplus.id/bantuan</a>
             </span>
             <p class="copyright">Copyright © 2025 PT. Cakra Sinergi Inovasi. All Rights Reserved.</p>
         </div>
