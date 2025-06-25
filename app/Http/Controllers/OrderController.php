@@ -136,6 +136,13 @@ class OrderController extends Controller
         return $pdf->download('Invoice_' . $order->id_order . '.pdf');
     }
 
+    public function previewInvoice($id_order)
+    {
+        $order = Order::with(['pelanggan', 'orderDetails.layananSubkategori', 'orderDetails.petugas'])->findOrFail($id_order);
+
+        return view('orders.invoice_pdf', compact('order'));
+    }
+
     public function destroy($id)
     {
         $order = Order::findOrFail($id);

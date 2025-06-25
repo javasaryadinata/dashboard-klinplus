@@ -4,23 +4,55 @@
     <meta charset="utf-8">
     <title>Invoice {{ $order->id_order }}</title>
     <style>
-        body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
-        .header { margin-bottom: 20px; }
-        .header h2 { margin: 0 0 10px 0; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px;}
-        th, td { border: 1px solid #ddd; padding: 7px;}
-        th { background: #f2f2f2; }
-        .text-end { text-align: right; }
-        .total { font-weight: bold; }
+        body {
+            font-family: DejaVu Sans, sans-serif;
+            font-size: 14px;
+            padding: 40px;
+        }
+        .header {
+            margin-bottom: 20px;
+        }
+        .header h2 {
+            margin: 20px 0 20px 0
+        }
+        .alamat {
+            text-align: right;
+        }
+        p {
+            margin-bottom: 2px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 7px;
+        }
+        th {
+            background: #f2f2f2;
+        }
+        .text-end {
+            text-align: right;
+        }
+        .total {
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
     <div class="header">
+        <h2>LOGO</h2>
+        <p class="alamat">
+            Jl. Ngagel Jaya Utara No.152<br>
+            Baratajaya, Kec. Gubeng, Surabaya, Jawa Timur 60284
+        </p>
         <h2>INVOICE</h2>
-        <p>ID Order: <b>{{ $order->id_order }}</b><br>
-           Pelanggan: <b>{{ $order->pelanggan->nama_pelanggan }}</b><br>
-           Alamat: {{ $order->alamat_lokasi }}<br>
-           Tanggal Pengerjaan: {{ \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') }}</p>
+        <p>ID Order : <b>{{ $order->id_order }}</b></p>
+        <p>Pelanggan : {{ $order->pelanggan->nama_pelanggan }}</p>
+        <p>Alamat : {{ $order->alamat_lokasi }}</p>
+        <p>Tanggal Pengerjaan : {{ \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') }}</p>
     </div>
     <table>
         <thead>
