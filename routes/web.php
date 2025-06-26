@@ -71,3 +71,4 @@ Route::get('/invoice-preview/{order_id}', function($order_id) {
     return view('emails.invoice', compact('order'));
 });
 Route::get('/invoice/preview/{id_order}', [OrderController::class, 'previewInvoice']);
+Route::get('/working-order/preview/{id_order}', [JadwalController::class, 'previewWorkingOrder'])->name('working_order.preview');

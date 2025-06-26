@@ -85,6 +85,17 @@ class JadwalController extends Controller
         return $pdf->download($filename);
     }
 
+    public function previewWorkingOrder($id_order)
+    {
+        $order = Order::with([
+            'pelanggan',
+            'orderDetails.layananSubkategori.rootKategori',
+            'orderDetails.petugas'
+        ])->where('id_order', $id_order)->firstOrFail();
+
+        return view('jadwal.working_order', compact('order'));
+    }
+
     public function doReschedule(Request $request, $id_order)
     {
         // dd('MASUK CONTROLLER');
