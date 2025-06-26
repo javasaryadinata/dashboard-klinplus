@@ -12,19 +12,19 @@
             font-size: 14px;
             margin: 0;
             padding: 0;
-            background-color: #f9fafb;
+            background-color: #eeeeee;
             color: #333;
         }
         a {
             color: #47BFEC;
         }
         .container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 20px auto;
             background: white;
             border-radius: 12px;
             overflow: hidden;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.127);
+            /* box-shadow: 0 4px 10px rgba(0, 0, 0, 0.127); */
         }
         .header {
             background-color: #47BFEC;
@@ -55,7 +55,6 @@
         }
         .info-item {
             display: flex;
-            justify-content: space-between;
             margin: 6px 0;
         }
         .table {
@@ -105,17 +104,20 @@
         </div>
         <div class="content">
             <p class="nama-pelanggan">Halo <strong>{{ $order->pelanggan->nama_pelanggan }}</strong>,</p>
-            <p>Terimakasih telah menggunakan layanan Klinplus! Anda baru saja mengajukan booking dengan detail sebagai berikut:</p>
+            <p>
+                Terimakasih telah menggunakan layanan Klinplus!<br>
+                Anda baru saja mengajukan booking dengan detail sebagai berikut:
+            </p>
 
             <div class="section-title">Informasi Pelanggan</div>
-            <div class="info-item"><span>Nama : </span><span><strong>{{ $order->pelanggan->nama_pelanggan }}</strong></span></div>
-            <div class="info-item"><span>Email : </span><span><strong>{{ $order->pelanggan->email }}</strong></span></div>
-            <div class="info-item"><span>WhatsApp : </span><span><strong>{{ $order->pelanggan->telp_pelanggan }}</strong></span></div>
-            <div class="info-item"><span>Alamat : </span><span><strong>{{ $order->alamat_lokasi ?? $pelanggan->alamat_lokasi ?? '-' }}</strong></span></div>
+            <div class="info-item"><span>Nama : <strong>{{ $order->pelanggan->nama_pelanggan }}</strong></span></div>
+            <div class="info-item"><span>Email : <strong>{{ $order->pelanggan->email }}</strong></span></div>
+            <div class="info-item"><span>WhatsApp : <strong>{{ $order->pelanggan->telp_pelanggan }}</strong></span></div>
+            <div class="info-item"><span>Alamat : <strong>{{ $order->alamat_lokasi ?? $pelanggan->alamat_lokasi ?? '-' }}</strong></span></div>
 
             <div class="section-title">Detail Booking</div>
-            <div class="info-item"><span>Tanggal Pengerjaan : </span><span><strong>{{ \Carbon\Carbon::parse($order->tanggal_pengerjaan)->translatedFormat('d F Y') }}</strong></span></div>
-            <div class="info-item"><span>Waktu Pengerjaan : </span><span><strong>{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->translatedFormat('H : i') . ' WIB' }}</strong></span></div>
+            <div class="info-item"><span>Tanggal Pengerjaan : <strong>{{ \Carbon\Carbon::parse($order->tanggal_pengerjaan)->translatedFormat('d F Y') }}</strong></span></div>
+            <div class="info-item"><span>Waktu Pengerjaan : <strong>{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->translatedFormat('H:i') . ' WIB' }}</strong></span></div>
 
             <div class="section-title">Layanan</div>
             <table class="table">
@@ -143,7 +145,7 @@
             @endif
 
             <div class="total">
-                Total: Rp {{ number_format($order->total_harga, 0, ',', '.') }}
+                Total : Rp {{ number_format($order->total_harga, 0, ',', '.') }}
             </div>
 
             <p class="note">
