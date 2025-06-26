@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 use App\Models\LayananRootKategori;
 use App\Models\Order;
 use App\Models\Pelanggan;
+use App\Mail\InvoiceBookingMail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
 
 class BookingFormController extends Controller
 {
@@ -212,9 +214,9 @@ class BookingFormController extends Controller
             ->get();
 
         // Kirim email invoice
-        // if (!empty($pelanggan->email)) {
-        //     Mail::to($pelanggan->email)->send(new InvoiceBookingMail($pelanggan, $order, $detailLayanan));
-        // }
+        if (!empty($pelanggan->email)) {
+            Mail::to($pelanggan->email)->send(new InvoiceBookingMail($pelanggan, $order, $detailLayanan));
+        }
 
         return response()->json(['message' => 'Booking berhasil disimpan']);
     }

@@ -12,12 +12,12 @@
     <style>
         body {
             font-family: DejaVu Sans, sans-serif;
-            font-size: 16px;
+            font-size: 14px;
             line-height: 1.6;
-            margin: 30px;
+            margin: 5px;
         }
         p {
-            margin: 2px 0;
+            margin: 0;
         }
         table {
             border-collapse: collapse;
