@@ -27,6 +27,11 @@
         font-weight: var(--font-weight-medium);
         color: var(--color-dark-grey);
     }
+    .bodytext-dark-xs {
+        font-size: var(--text-xs);
+        font-weight: var(--font-weight-medium);
+        color: var(--color-dark-grey);
+    }
     .bodytext-dark-semibold {
         font-weight: var(--font-weight-semibold);
         color: var(--color-dark-grey);

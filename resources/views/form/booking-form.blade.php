@@ -19,7 +19,7 @@
 
     {{-- Body Form --}}
     <body x-data="BookingForm()" :class="{ 'overflow-hidden': showBookingDetail || showSuccessModal }" class="flex justify-center bg-gray-100 font-poppins">
-        <div class="mx-8 max-w-5xl my-8 p-8 bg-white rounded-3xl shadow-lg ">
+        <div class="w-full mx-8 max-w-5xl my-8 p-8 bg-white rounded-3xl shadow-lg ">
             <h2 class="mb-8">Booking Order Form</h2>
 
 
@@ -146,17 +146,17 @@
                             @enderror
                         </div>
 
-                        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-4">
                             <template x-for="(layanan, index) in selectedLayanan" :key="layanan.id">
-                                <div class="px-4 py-2 rounded-lg shadow-md/20 bg-sky-50 relative">
+                                <div class="px-5 py-2 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-all duration-300 relative group min-w-0 flex flex-col items-start min-h-[125px]">
                                     <button type="button" @click="removeLayanan(layanan.id)" class="absolute top-2 right-1 text-gray-500 hover:bg-gray-200 rounded">
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                                         </svg>                                          
                                     </button>
                                     <p class="font-semibold text-cyan md:mr-6" x-text="layanan.nama_rootkategori"></p>
-                                    <h4 class="text-xs text-gray-500 mb-2" x-text="layanan.nama_subkategori"></h4>
-                                    <p class="bodytext-dark" x-text="'Rp. ' + Intl.NumberFormat('id-ID').format(layanan.harga)"></p>
+                                    <h4 class="bodytext-dark-sm mb-4" x-text="layanan.nama_subkategori"></h4>
+                                    <p class="mt-auto bodytext-dark" x-text="'Rp. ' + Intl.NumberFormat('id-ID').format(layanan.harga)"></p>
                                 </div>
                             </template>
                         </div>
