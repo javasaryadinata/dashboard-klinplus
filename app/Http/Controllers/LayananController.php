@@ -7,11 +7,38 @@ use Illuminate\Http\Request;
 
 class LayananController extends Controller
 {
-    // Menampilkan daftar layanan
-    public function index()
+    public function index(Request $request)
     {
-        $rootkategori = LayananRootKategori::with('subkategori')->get();
-        return view('layanan.index', compact('rootkategori'));
+        $search = $request->query('search');
+        $active_tab = $request->query('active_tab', $search ? 'layanan' : 'kategori');
+
+        // 1. DATA UNTUK TAB 1 (Kategori): Selalu ambil semua tanpa filter
+        $all_categories = LayananRootKategori::with('subkategori')->get();
+
+        // 2. DATA UNTUK TAB 2 (Layanan): Filter tembus ke Kategori & Subkategori
+        $rootkategori = LayananRootKategori::with(['subkategori' => function($query) use ($search) {
+            if ($search) {
+                $query->where(function($q) use ($search) {
+                    $q->where('nama_subkategori', 'like', "%{$search}%")
+                    // Ini kuncinya: cari juga ke tabel induk (Kategori)
+                    ->orWhereHas('rootKategori', function($rq) use ($search) {
+                        $rq->where('nama_rootkategori', 'like', "%{$search}%");
+                    });
+                });
+            }
+        }])
+        ->when($search, function($query) use ($search) {
+            // Hanya ambil kategori yang namanya cocok ATAU punya layanan yang cocok
+            $query->where(function($q) use ($search) {
+                $q->where('nama_rootkategori', 'like', "%{$search}%")
+                ->orWhereHas('subkategori', function($sq) use ($search) {
+                    $sq->where('nama_subkategori', 'like', "%{$search}%");
+                });
+            });
+        })
+        ->get();        
+
+        return view('layanan.index', compact('rootkategori', 'all_categories', 'search', 'active_tab'));
     }
 
     // Menyimpan layanan baru

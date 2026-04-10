@@ -8,47 +8,68 @@
         {{ session('layanan_error') }}
     </div>
 @endif
-<div class="container-btn-tambah">
-    <div class="d-flex">
-        <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahLayananModal">Tambah Layanan</button>
-    </div>
+<div class="d-flex justify-content-between align-items-center style="gap:16px;">
+    <form action="{{ route('layanan.index') }}" method="GET" class="d-flex align-items-center" autocomplete="off" style="flex:1;">
+        <input type="hidden" name="active_tab" value="layanan">
+        <div class="input-group me-2" style="max-width:400px;">
+            <input type="text" name="search" class="form-control" placeholder="Cari" value="{{ $search }}">
+            @if($search)
+                <a href="{{ route('layanan.index') }}?active_tab=layanan" class="btn-clear-search" id="btn-clear-search">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+            @endif
+        </div>
+    </form>
+    <button class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahLayananModal">Tambah Layanan</button>
 </div>
 <div class="container-table">
     <div class="table-wrapper">
         <table class="layanan-table">
-    <thead>
-        <tr>
-            <th>No</th>
-            <th>Kategori</th>
-            <th>Nama Layanan</th>
-            <th>Harga</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        @php $i = 1; @endphp
-        @foreach($rootkategori as $root)
-            @foreach($root->subkategori as $sub)
-            <tr>
-                <td>{{ $i++ }}</td>
-                <td>{{ $root->nama_rootkategori }}</td>
-                <td>{{ $sub->nama_subkategori }}</td>
-                <td>Rp {{ number_format($sub->harga, 0, ',', '.') }}</td>
-                <td>
-                    <div class="action-buttons gap-2">
-                        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#editLayananModal{{ $sub->id }}">Edit</button>
-                        <form action="{{ route('layanan.destroy', $sub->id) }}" method="POST" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-hapus" onclick="return confirm('Yakin hapus?')">Hapus</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-            @endforeach
-        @endforeach
-    </tbody>
-</table>
+            <thead>
+                <tr>
+                    <th>No</th>
+                    <th>Kategori</th>
+                    <th>Nama Layanan</th>
+                    <th>Harga</th>
+                    <th>Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                @php 
+                    $i = 1; 
+                    $hasResults = false; // Penanda apakah ada layanan yang tampil
+                @endphp
+                @foreach($rootkategori as $root)
+                    {{-- Hanya tampilkan baris jika subkategori ada isinya (setelah difilter) --}}
+                    @foreach($root->subkategori as $sub)
+                        @php $hasResults = true; @endphp
+                        <tr>
+                            <td>{{ $i++ }}</td>
+                            <td>{{ $root->nama_rootkategori }}</td>
+                            <td>{{ $sub->nama_subkategori }}</td>
+                            <td>Rp {{ number_format($sub->harga, 0, ',', '.') }}</td>
+                            <td>
+                                <div class="action-buttons gap-2">
+                                    <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#editLayananModal{{ $sub->id }}">Edit</button>
+                                    <form action="{{ route('layanan.destroy', $sub->id) }}" method="POST" style="display:inline;">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-hapus" onclick="return confirm('Yakin hapus?')">Hapus</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @endforeach
+                @endforeach
+                @if(!$hasResults)
+                    <tr>
+                        <td colspan="5" class="text-center py-4">
+                            <strong>Layanan "{{ $search }}" tidak ditemukan.</strong>
+                        </td>
+                    </tr>
+                @endif
+            </tbody>
+        </table>
     </div>
 </div>
 
