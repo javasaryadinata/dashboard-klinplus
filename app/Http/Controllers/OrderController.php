@@ -240,7 +240,6 @@ class OrderController extends Controller
 
     public function updateLayanan(Request $request, $id_order)
     {
-
         // dd($request->all());
 
         $request->validate([
@@ -250,12 +249,22 @@ class OrderController extends Controller
             'layanans'           => 'required|array',
             'subtotals'          => 'required|array',
             'durasi_layanan'     => 'required|array',
-            'petugas'            => 'required|array',
+            //'petugas'            => 'required|array',
             'diskon'             => 'nullable|numeric|min:0',
             'total_harga'        => 'required|numeric|min:0',
             'metode_pembayaran'  => 'required|in:DP,Lunas',
             'tipe_pembayaran'    => 'required|in:Transfer,Cash',
         ]);
+
+        foreach ($request->layanans as $i => $id_layanan) {
+            $petugasArr = $request->petugas[$i] ?? [];
+            // Jika array petugas kosong (tidak ada yang di-assign)
+            if (empty(array_filter($petugasArr))) {
+                return redirect()->back()
+                    ->withInput()
+                    ->with('error', 'Gagal menyimpan! Petugas belum dipilih untuk layanan ' . ($i + 1) . '.');
+            }
+        }
 
         try {
             DB::beginTransaction();

@@ -6,118 +6,118 @@
 
 @section('content')
 
-@if(session('success'))
-    <div class="alert alert-success" id="order-success-alert">
-        {{ session('success') }}
-    </div>
-@endif
-
 <form method="POST" action="{{ route('orders.updateLayanan', $order->id_order) }}">
     @csrf
     @method('PUT')
 
-    <div class="detail-table">
-
-        <!-- Informasi Pelanggan -->
-        <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold">ID Order</label>
-            <div class="col-md-10">
-                <input type="text" class="form-control bg-light" value="{{ $order->id_order }}" readonly>
+    <h2 class="text-gray-800 mb-6 pb-3">Informasi Pesanan</h2>
+    
+    <div class="space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <label class="md:w-1/4 font-semibold text-gray-700 text-sm">ID Order</label>
+            <div class="md:w-3/4">
+                <input type="text" class="w-full bg-gray-50 border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm outline-none cursor-not-allowed" value="{{ $order->id_order }}" readonly>
             </div>
         </div>
 
-        <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold">Nama Pelanggan :</label>
-            <div class="col-md-10">
-                <input type="text" class="form-control bg-light" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <label class="md:w-1/4 font-semibold text-gray-700 text-sm">Nama Pelanggan</label>
+            <div class="md:w-3/4">
+                <input type="text" class="w-full bg-gray-50 border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm outline-none cursor-not-allowed" value="{{ $order->pelanggan->nama_pelanggan }}" readonly>
             </div>
         </div>
 
-        <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold">Lokasi Pengerjaan :</label>
-            <div class="col-md-10">
-                <input type="text" class="form-control bg-light" value="{{ $order->alamat_lokasi ?? '-' }}" readonly>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <label class="md:w-1/4 font-semibold text-gray-700 text-sm">Lokasi Pengerjaan</label>
+            <div class="md:w-3/4">
+                <input type="text" class="w-full bg-gray-50 border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm outline-none cursor-not-allowed" value="{{ $order->alamat_lokasi ?? '-' }}" readonly>
             </div>
         </div>
 
-        <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold">Tanggal Pengerjaan :</label>
-            <div class="col-md-10">
-                <input type="date" class="form-control bg-light" name="tanggal_pengerjaan" value="{{ $order->tanggal_pengerjaan }}" required>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <label class="md:w-1/4 font-semibold text-gray-700 text-sm">Tanggal Pengerjaan</label>
+            <div class="md:w-3/4">
+                <input type="date" name="tanggal_pengerjaan" value="{{ $order->tanggal_pengerjaan }}" required
+                        class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-[#2ac6ea]/20 focus:border-[#2ac6ea] outline-none transition-all shadow-sm text-gray-700">
             </div>
         </div>
 
-        <div class="row align-items-center mb-3">
-            <label class="col-md-2 col-form-label fw-semibold">Waktu Pengerjaan :</label>
-            <div class="col-md-10">
-                <input type="time" class="form-control bg-light" name="jam_pengerjaan" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" required>
+        <div class="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
+            <label class="md:w-1/4 font-semibold text-gray-700 text-sm">Waktu Pengerjaan</label>
+            <div class="md:w-3/4">
+                <input type="time" name="jam_pengerjaan" value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}" required
+                        class="w-full border border-gray-300 px-4 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-[#2ac6ea]/20 focus:border-[#2ac6ea] outline-none transition-all shadow-sm text-gray-700">
             </div>
         </div>
     </div>
 
-    <div class="container-table">
-        <div class="table-responsive">
-            <table class="table" id="layananOrderTable">
-                <thead class="table-light">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+            <h4 class="text-lg font-bold text-gray-800 m-0">Daftar Layanan</h4>
+            <button type="button" data-bs-toggle="modal" data-bs-target="#tambahOrderLayananModal" 
+                    class="bg-[#2ac6ea] hover:bg-[#27b9d9] text-white px-4 py-2 rounded-xl text-sm font-medium transition-colors shadow-sm flex items-center gap-2 border-0">
+                <i class="bi bi-plus-lg"></i> Tambah Layanan
+            </button>
+        </div>
+        
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse" id="layananOrderTable">
+                <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 uppercase tracking-wider text-xs">
                     <tr>
-                        <th>No</th>
-                        <th>Nama Layanan</th>
-                        <th>Durasi (Menit)</th>
-                        <th>Nama Petugas</th>
-                        <th>Harga</th>
-                        <th>Action</th>
+                        <th class="px-6 py-4 font-semibold">No</th>
+                        <th class="px-6 py-4 font-semibold">Nama Layanan</th>
+                        <th class="px-6 py-4 font-semibold">Durasi (Mnt)</th>
+                        <th class="px-6 py-4 font-semibold">Petugas</th>
+                        <th class="px-6 py-4 font-semibold">Harga</th>
+                        <th class="px-6 py-4 font-semibold text-center">Action</th>
                     </tr>  
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
                     @foreach($order->orderDetails as $i => $detail)
                     @php
                         $namaPetugas = $detail->petugas->pluck('nama_petugas')->implode(', ');
                         $idPetugas = $detail->petugas->pluck('id_petugas')->implode(',');
                     @endphp
-                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}" data-id-order-detail="{{ $detail->id_order_detail }}" data-petugas-id="{{ $idPetugas }}">
-                        <td>
+                    <tr data-layanan-id="{{ $detail->id_layanan_subkategori }}" data-id-order-detail="{{ $detail->id_order_detail }}" data-petugas-id="{{ $idPetugas }}" class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4">
                             {{ $loop->iteration }}
                             <input type="hidden" name="id_order_detail[]" value="{{ $detail->id_order_detail }}">
                         </td>
-                        <td>
-                            {{ 
-                                ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') 
-                                . ' - ' . 
-                                ($detail->layananSubkategori->nama_subkategori ?? '-') 
-                            }}
+                        <td class="px-6 py-4 font-medium text-gray-900">
+                            {{ ($detail->layananSubkategori->rootKategori->nama_rootkategori ?? '-') . ' - ' . ($detail->layananSubkategori->nama_subkategori ?? '-') }}
                         </td>
-                        <td>
-                            <input type="number" name="durasi_layanan[]" class="form-control durasi-input" min="5" step="5"
-                            value="{{ $detail->durasi_layanan ?? 60 }}" style="width:80px;">
+                        <td class="px-6 py-4">
+                            <input type="number" name="durasi_layanan[]" min="5" step="5" value="{{ $detail->durasi_layanan ?? 60 }}" 
+                                   class="durasi-input w-20 border border-gray-300 px-3 py-1.5 rounded-lg text-sm focus:ring-2 focus:ring-[#2ac6ea]/20 focus:border-[#2ac6ea] outline-none transition-all text-center">
                         </td>
-                        <td>
-                            {{ $detail->petugas->count() ? $detail->petugas->pluck('nama_petugas')->implode(', ') : '-' }}
+                        <td class="px-6 py-4">
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-md {{ $detail->petugas->count() ? 'bg-blue-50 text-blue-700' : 'text-gray-400' }}">
+                                <i class="bi bi-person-fill"></i>
+                                {{ $detail->petugas->count() ? $detail->petugas->pluck('nama_petugas')->implode(', ') : 'Belum Atur' }}
+                            </span>
                         </td>
+                        <td class="px-6 py-4 font-semibold text-[#2ac6ea]">
+                            Rp {{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}
                         </td>
-                        <td>Rp {{ number_format($detail->subtotal ?? $detail->harga, 0, ',', '.') }}</td>
-                        <td>
-                            <button type="button" class="btn btn-edit-petugas" 
-                                data-layanan-id="{{ $detail->id_layanan_subkategori }}"
-                                data-current-petugas="{{ $idPetugas }}"
-                                data-current-nama-petugas="{{ $namaPetugas }}">
-                                Edit Petugas
-                            </button>
-                            <button type="button" class="btn btn-hapus-layanan">
-                                <i class="bi bi-trash-fill"></i>
-                            </button>
+                        <td class="px-6 py-4 text-center">
+                            <div class="flex items-center justify-center gap-2">
+                                <button type="button" class="btn-edit-petugas bg-blue-100 hover:bg-blue-200 text-blue-700 p-2 rounded-lg transition-colors border-0" 
+                                    data-layanan-id="{{ $detail->id_layanan_subkategori }}"
+                                    data-current-petugas="{{ $idPetugas }}"
+                                    data-current-nama-petugas="{{ $namaPetugas }}"
+                                    title="Edit Petugas">
+                                    <i class="bi bi-person-lines-fill pointer-events-none"></i>
+                                </button>
+                                <button type="button" class="btn-delete bg-red-50 hover:bg-red-100 text-red-600 p-2 rounded-lg transition-colors border-0" title="Hapus Layanan">
+                                    <i class="bi bi-trash-fill pointer-events-none"></i>
+                                </button>
+                            </div>
                         </td>
                     </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
-    </div>
-
-    {{-- Button Tambah Layanan --}}
-    <div class="btn-detail-layanan mb-4">
-        <button type="button" class="btn btn-new" data-bs-toggle="modal" data-bs-target="#tambahOrderLayananModal">
-            Tambah Layanan
-        </button>
     </div>
 
     <!-- Hidden inputs container dengan data awal -->
@@ -223,15 +223,15 @@
     </div>
 </form>
 
-<!-- Modal Tambah Layanan -->
-<div class="modal fade" id="tambahOrderLayananModal" tabindex="-1" aria-labelledby="tambahOrderLayananModalLabel" aria-hidden="true">
+<!-- Modal Tambah Layanan 1-->
+{{-- <div class="modal fade" id="tambahOrderLayananModal" tabindex="-1" aria-labelledby="tambahOrderLayananModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-white text-dark">
                 <h5 class="modal-title" id="modalTitle">Tambah Layanan</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            {{-- <div class="modal-body">
                 <input type="hidden" id="editMode" value="0">
                 <input type="hidden" id="currentLayananId">
 
@@ -265,13 +265,114 @@
                 <div class="mb-3">
                     <label for="subtotal" class="form-label">Sub Total</label>
                     <input type="text" class="form-control" id="subtotal" readonly>
-                </div> --}}
-            </div>
-            <div class="modal-footer">
+                </div>
+            </div> --}}
+            {{-- <div class="modal-footer">
                 <button type="button" class="btn btn-back" data-bs-dismiss="modal">Batal</button>
                 <button type="button" class="btn btn-save" id="saveLayananBtn">Tambahkan</button>
             </div>
+            <div class="modal-body">
+                <input type="hidden" id="editMode" value="0">
+                <input type="hidden" id="currentLayananId">
+
+                <div class="mb-3">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
+                        <input type="text" id="searchLayanan" class="form-control" placeholder="Cari nama layanan...">
+                    </div>
+                </div>
+
+                <div class="row row-cols-1 row-cols-md-2 g-3" id="layananCardContainer" style="max-height: 60vh; overflow-y: auto; overflow-x: hidden;">
+                    @foreach($layanans as $layanan)
+                    <div class="col layanan-item">
+                        <div class="card h-100 layanan-card" 
+                            data-id="{{ $layanan->id }}"
+                            data-nama="{{ ($layanan->rootKategori->nama_rootkategori ?? '-') . ' - ' . $layanan->nama_subkategori }}"
+                            data-harga="{{ $layanan->harga }}"
+                            data-durasi="{{ $layanan->durasi ?? 0 }}">
+                            <div class="card-body p-3">
+                                <h6 class="card-subtitle mb-1 text-muted" style="font-size: 0.8rem;">
+                                    {{ $layanan->rootKategori->nama_rootkategori ?? '-' }}
+                                </h6>
+                                <h5 class="card-title fs-6 fw-bold mb-2">
+                                    {{ $layanan->nama_subkategori }}
+                                </h5>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <span class="badge bg-primary rounded-pill">Rp {{ number_format($layanan->harga, 0, ',', '.') }}</span>
+                                    <small class="text-muted"><i class="bi bi-clock me-1"></i>{{ $layanan->durasi ?? 60 }} Min</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
         </div>
+    </div>
+</div> --}}
+
+<!-- Modal Tambah Layanan 2-->
+<div class="modal fade" id="tambahOrderLayananModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        
+        <div class="modal-content">
+            
+            <div class="relative bg-white rounded-2xl shadow-2xl w-full max-h-[85vh] overflow-hidden flex flex-col text-left">
+                
+                <input type="hidden" id="editMode" value="0">
+                <input type="hidden" id="currentLayananId">
+
+                <div class="p-4 border-b border-gray-100 sticky top-0 bg-white z-10">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">Pilih Layanan Klinplus</h3>
+                        <button type="button" data-bs-dismiss="modal" class="group relative text-gray-500 hover:text-gray-500 transition-colors p-1 rounded-md hover:bg-gray-200 border-0 bg-transparent">
+                            <svg class="size-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+
+                    <div class="relative group mt-2">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input type="text" id="searchLayanan" placeholder="Cari layanan apa hari ini?" 
+                            class="w-full border-gray-300 border pl-10 pr-10 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-cyan/20 focus:border-cyan outline-none transition-all shadow-sm">
+                    </div>
+                </div>
+
+                <div class="p-4 sm:p-6 overflow-y-auto flex-1 bg-gray-50/50" id="layananCardContainer">
+                    @php
+                        $groupedLayanans = $layanans->groupBy(function($item) {
+                            return $item->rootKategori->nama_rootkategori ?? 'Lainnya';
+                        });
+                    @endphp
+
+                    @foreach($groupedLayanans as $rootName => $subs)
+                        <div class="mb-6 last:mb-0 layanan-group">
+                            <p class="font-bold text-base text-cyan uppercase tracking-widest mb-2">{{ $rootName }}</p>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                @foreach($subs as $sub)
+                                    <div class="layanan-card cursor-pointer p-4 bg-white border border-gray-200 shadow-sm hover:shadow-md hover:border-cyan transition-all rounded-xl flex flex-col items-start min-h-[80px]"
+                                         data-id="{{ $sub->id }}"
+                                         data-nama="{{ $rootName . ' - ' . $sub->nama_subkategori }}"
+                                         data-harga="{{ $sub->harga }}"
+                                         data-durasi="{{ $sub->durasi ?? 0 }}">
+                                        
+                                        <span class="bodytext-dark mb-auto">{{ $sub->nama_subkategori }}</span>
+                                        
+                                        <span class="pricetext-sm mt-7">Rp {{ number_format($sub->harga, 0, ',', '.') }}</span>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+            </div>
     </div>
 </div>
 
@@ -322,14 +423,32 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+    // --- KONFIGURASI TOASTR ---
+    toastr.options = {
+        "closeButton": true,
+        "progressBar": false,
+        "positionClass": "toast-top-right", // Muncul di kanan atas
+        "timeOut": "4000", // Hilang otomatis setelah 4 detik
+        "extendedTimeOut": "1000",
+    };
+
+    // --- TRIGGER TOASTR BERDASARKAN SESSION LARAVEL ---
+    @if(session('success'))
+        toastr.success("{{ session('success') }}", "Berhasil!");
+    @endif
+
+    @if(session('error'))
+        toastr.error("{{ session('error') }}", "Gagal!");
+    @endif
+
+    @if($errors->any())
+        @foreach($errors->all() as $error)
+            toastr.error("{{ $error }}", "Validasi Gagal!");
+        @endforeach
+    @endif
+
     const elements = {
-        layananSelect: document.getElementById('layanan_id'),
-        // kodeLayananInput: document.getElementById('kode_layanan'),
-        // qtyInput: document.getElementById('qty'),
         jamMulaiInput: document.getElementById('jam_mulai'),
-        // estimasiInput: document.getElementById('estimasi_selesai'),
-        // subtotalInput: document.getElementById('subtotal'),
-        saveBtn: document.getElementById('saveLayananBtn'),
         tableBody: document.querySelector('#layananOrderTable tbody'),
         hiddenInputsContainer: document.getElementById('hiddenInputsContainer'),
         modalTitle: document.getElementById('modalTitle'),
@@ -343,44 +462,9 @@ document.addEventListener('DOMContentLoaded', function () {
         savePetugasBtn: document.getElementById('savePetugasBtn')
     };
 
-    // Panggil sekali saat halaman pertama kali load
     addDurasiInputListeners();
     updateTotalDurasiDanJamSelesai();
     syncHiddenInputsWithTable();
-
-    // Fungsi untuk mengupdate estimasi dan subtotal
-    // function updateEstimasiDanSubtotal() {
-    //     const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
-    //     if (!selectedOption || selectedOption.disabled) {
-    //         elements.kodeLayananInput.value = '';
-    //         elements.estimasiInput.value = '';
-    //         elements.subtotalInput.value = '';
-    //         return;
-    //     }
-
-    //     const kode = selectedOption.getAttribute('data-kode');
-    //     const harga = parseInt(selectedOption.getAttribute('data-harga')) || 0;
-    //     const durasi = parseInt(selectedOption.getAttribute('data-durasi')) || 0;
-    //     const qty = parseInt(elements.qtyInput.value) || 1;
-
-    //     elements.kodeLayananInput.value = kode;
-    //     const subtotal = harga * qty;
-    //     elements.subtotalInput.value = 'Rp' + subtotal.toLocaleString('id-ID');
-
-    //     if (elements.jamMulaiInput.value && durasi > 0) {
-    //         const [jam, menit] = elements.jamMulaiInput.value.split(':').map(Number);
-    //         const totalMenit = jam * 60 + menit + (durasi * qty);
-    //         const hasilJam = String(Math.floor(totalMenit / 60)).padStart(2, '0');
-    //         const hasilMenit = String(totalMenit % 60).padStart(2, '0');
-    //         elements.estimasiInput.value = `${hasilJam}:${hasilMenit}`;
-    //     } else {
-    //         elements.estimasiInput.value = '';
-    //     }
-    // }
-
-    // Event listeners untuk update estimasi dan subtotal
-    // elements.layananSelect.addEventListener('change', updateEstimasiDanSubtotal);
-    // elements.qtyInput.addEventListener('change', updateEstimasiDanSubtotal);
 
     function addDurasiInputListeners() {
         document.querySelectorAll('.durasi-input').forEach(input => {
@@ -484,100 +568,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Handle Tombol Tambah Layanan
-    elements.saveBtn.addEventListener('click', function() {
-        const selectedOption = elements.layananSelect.options[elements.layananSelect.selectedIndex];
-        const isEditMode = elements.editModeInput.value === '1';
-
-        if (!selectedOption || selectedOption.disabled) {
-            alert("Silakan pilih layanan yang valid.");
-            return;
-        }
-
-        const layananId = selectedOption.value;
-        // const kodeLayanan = elements.kodeLayananInput.value;
-        const namaLayanan = selectedOption.getAttribute('data-nama');
-        // const estimasiSelesai = elements.estimasiInput.value;
-        // const subtotal = parseInt(elements.subtotalInput.value.replace(/\D/g, '')) || 0;
-        // const qty = parseInt(elements.qtyInput.value) || 1;
-        const harga = selectedOption.getAttribute('data-harga') || 0;
-
-        // if (!estimasiSelesai || subtotal <= 0) {
-        //     alert("Data tidak valid. Silakan periksa kembali.");
-        //     return;
-        // }
-
-        // Cek duplikasi
-        const existingRow = elements.tableBody.querySelector(`tr[data-layanan-id="${layananId}"]`);
-        if (existingRow && !isEditMode) {
-            alert("Layanan ini sudah ditambahkan.");
-            return;
-        }
-
-        const newRow = document.createElement('tr');
-        newRow.dataset.layananId = layananId;
-        newRow.innerHTML = `
-            <td></td>
-            <td>${namaLayanan}</td>
-            <td><input type="number" class="form-control durasi-input" name="durasi[]" min="1" value="60" style="width:80px;"></td>
-            <td>-</td>
-            <td>Rp${parseInt(harga).toLocaleString('id-ID')}</td>
-            <td>
-                <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
-                    data-layanan-id="${layananId}"
-                    data-current-petugas=""
-                    data-current-nama-petugas="">
-                    Edit Petugas
-                </button>
-                <button type="button" class="btn btn-sm btn-danger btn-delete">Hapus</button>
-            </td>
-        `;
-        
-        if (isEditMode && existingRow) {
-            existingRow.replaceWith(newRow);
-        } else {
-            elements.tableBody.appendChild(newRow);
-        }
-        updateTableNumbering();
-        addDurasiInputListeners();
-
-        // Update hidden inputs
-        const inputWrapper = document.createElement('div');
-        inputWrapper.classList.add('hidden-input-wrapper');
-        inputWrapper.dataset.layananId = layananId;
-        // <input type="hidden" name="estimasi_selesais[]" value=""> posisi digunakan: setelah subtotals
-        inputWrapper.innerHTML = `
-            <input type="hidden" name="layanans[]" value="${layananId}">
-            <input type="hidden" name="subtotals[]" value="${harga}">
-            <input type="hidden" name="petugas[]" value="">
-        `;
-        
-        if (isEditMode) {
-            const existingWrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
-            if (existingWrapper) {
-                existingWrapper.replaceWith(inputWrapper);
-            }
-        } else {
-            elements.hiddenInputsContainer.appendChild(inputWrapper);
-        }
-
-        // Update summary
-        // updateTotalDurasiDanJamSelesai();
-        // updateTotalHarga();
-
-        // Reset modal
-        elements.editModeInput.value = '0';
-        elements.currentLayananIdInput.value = '';
-        elements.layananSelect.selectedIndex = 0;
-        // elements.layananSelect.disabled = false;
-        // elements.qtyInput.value = 1;
-        // elements.kodeLayananInput.value = '';
-        // elements.estimasiInput.value = '';
-        // elements.subtotalInput.value = '';
-        updateTableNumbering();
-        syncHiddenInputsWithTable();
-        elements.modal.hide();
-    });
+    
 
     // Handle Tombol Hapus Layanan
     elements.tableBody.addEventListener('click', function(e) {
@@ -599,6 +590,113 @@ document.addEventListener('DOMContentLoaded', function () {
                 syncHiddenInputsWithTable();
             }
         }
+    });
+
+    // --- FITUR BARU: Search Grouping & One-Click Add ---
+    
+    // 1. Fitur Search Layanan (Berdasarkan Kategori)
+    const searchInput = document.getElementById('searchLayanan');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase();
+            
+            document.querySelectorAll('.layanan-group').forEach(group => {
+                let hasVisibleCard = false;
+                
+                group.querySelectorAll('.layanan-card').forEach(card => {
+                    const namaLayanan = card.dataset.nama.toLowerCase();
+                    if (namaLayanan.includes(searchTerm)) {
+                        card.style.display = '';
+                        hasVisibleCard = true;
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+                
+                // Sembunyikan judul kategori jika semua isinya tidak cocok
+                group.style.display = hasVisibleCard ? '' : 'none';
+            });
+        });
+    }
+
+    // 2. Klik Card Langsung Tambah Layanan (Lebih Praktis & Modern)
+    document.querySelectorAll('.layanan-card').forEach(card => {
+        card.addEventListener('click', function() {
+            const isEditMode = elements.editModeInput.value === '1';
+            const layananId = this.dataset.id;
+            const namaLayanan = this.dataset.nama;
+            const harga = this.dataset.harga;
+
+            // Cek duplikasi
+            const existingRow = elements.tableBody.querySelector(`tr[data-layanan-id="${layananId}"]`);
+            if (existingRow && !isEditMode) {
+                toastr.error("Layanan ini sudah ada di daftar order.", "Peringatan!");
+                return;
+            }
+
+            // Tambah Row ke Tabel
+            const newRow = document.createElement('tr');
+            newRow.dataset.layananId = layananId;
+            newRow.innerHTML = `
+                <td></td>
+                <td>${namaLayanan}</td>
+                <td><input type="number" class="form-control durasi-input" name="durasi_layanan[]" min="5" step="5" value="60" style="width:80px;"></td>
+                <td>-</td>
+                <td>Rp ${parseInt(harga).toLocaleString('id-ID')}</td>
+                <td>
+                    <button type="button" class="btn btn-sm btn-info btn-edit-petugas" 
+                        data-layanan-id="${layananId}"
+                        data-current-petugas=""
+                        data-current-nama-petugas="">
+                        Edit Petugas
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger btn-delete"><i class="bi bi-trash-fill"></i></button>
+                </td>
+            `;
+            
+            if (isEditMode && existingRow) {
+                existingRow.replaceWith(newRow);
+            } else {
+                elements.tableBody.appendChild(newRow);
+            }
+            
+            // Update Event Listeners & Nomor
+            updateTableNumbering();
+            addDurasiInputListeners();
+
+            // Tambah Hidden Input untuk Controller
+            const inputWrapper = document.createElement('div');
+            inputWrapper.classList.add('hidden-input-wrapper');
+            inputWrapper.dataset.layananId = layananId;
+            inputWrapper.innerHTML = `
+                <input type="hidden" name="id_order_detail[]" value="">
+                <input type="hidden" name="layanans[]" value="${layananId}">
+                <input type="hidden" name="subtotals[]" value="${harga}">
+                <input type="hidden" name="durasi_layanan[]" value="60">
+            `;
+            
+            if (isEditMode) {
+                const existingWrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
+                if (existingWrapper) {
+                    existingWrapper.replaceWith(inputWrapper);
+                }
+            } else {
+                elements.hiddenInputsContainer.appendChild(inputWrapper);
+            }
+
+            // Update Total Kalkulasi
+            updateTotalDurasiDanJamSelesai();
+            updateTotalHarga();
+
+            // Reset Search Form
+            if(searchInput) searchInput.value = '';
+            document.querySelectorAll('.layanan-group, .layanan-card').forEach(el => el.style.display = '');
+
+            // Tutup Modal & Sinkronisasi Ulang
+            syncHiddenInputsWithTable();
+            elements.modal.hide();
+            toastr.success("Layanan berhasil ditambahkan ke tabel", "Berhasil!");
+        });
     });
 
     // Handle Pilihan Petugas
@@ -674,19 +772,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 editBtn.dataset.currentNamaPetugas = displayText;
             }
         }
-        
-        // Update hidden input
-        // const wrapper = elements.hiddenInputsContainer.querySelector(`.hidden-input-wrapper[data-layanan-id="${layananId}"]`);
-        // if (wrapper) {
-        //     let petugasInput = wrapper.querySelector('input[name="petugas[]"]');
-        //     if (!petugasInput) {
-        //         petugasInput = document.createElement('input');
-        //         petugasInput.type = 'hidden';
-        //         petugasInput.name = 'petugas[]';
-        //         wrapper.appendChild(petugasInput);
-        //     }
-        //     petugasInput.value = petugasId;
-        // }
+                
         syncHiddenInputsWithTable();
         elements.editPetugasModal.hide();
     });

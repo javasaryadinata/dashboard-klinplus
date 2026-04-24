@@ -1,22 +1,106 @@
-/* Base Styles */
-body {
-  margin: 0;
-  padding: 0;
-  font-family: "Poppins", "Segoe UI", arial, sans-serif;
-  background-color: #f4f6f9;
-  color: #444;
-  line-height: 1.8;
+@import "tailwindcss";
+
+@theme {
+  --font-poppins: "Poppins", "Arial", sans-serif;
+  --color-cyan: #2ac6ea;
+  --color-dark-grey: #333333;
+  --color-grey: #737373;
 }
 
-h1 {
-  margin-top: .4rem;
+@media (max-width: 767px) {
+  .dropdown-container {
+    width: 100vw;
+    left: 50% !important;
+    transform: translateX(-50%);
+    max-width: calc(100% - 2rem);
+  }
 }
 
-*,
+@layer base {
+  h1 {
+    color: var(--color-cyan);
+  }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+  }
+  h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+}
+
+@layer components {
+  .bodytext-dark {
+    font-weight: 500;
+    color: var(--color-dark-grey);
+  }
+  .bodytext-dark-sm {
+    font-size: 0.875rem; /* setara text-sm */
+    font-weight: 500;
+    color: var(--color-dark-grey);
+  }
+  .pricetext-sm {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-grey);
+  }
+  .bodytext-dark-xs {
+    font-size: 0.75rem; /* setara text-xs */
+    font-weight: 500;
+    color: var(--color-dark-grey);
+  }
+  .bodytext-dark-semibold {
+    font-weight: 600; /* setara font-semibold */
+    color: var(--color-dark-grey);
+  }
+  .bodytext-grey {
+    font-weight: 500;
+    color: var(--color-grey-body-text);
+  }
+  .price-grey {
+    font-size: 0.875rem;
+    color: var(--color-grey-body-text);
+  }
+  .placeholder {
+    font-weight: 400;
+    font-size: 1rem;
+    color: var(--color-dark-grey);
+  }
+  .relative-dropdown {
+    position: relative;
+  }
+  .sticky-search {
+    position: sticky;
+    top: 0;
+    background: white;
+    padding: 8px 0;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+  }
+  button[x-show="keyword"] {
+    pointer-events: auto !important;
+    z-index: 10;
+  }
+  .dropdown-divider {
+    border-color: #e5e7eb;
+    margin: 0.5rem 0;
+  }
+  .subcategory-divider {
+    border-color: #f3f4f6;
+    margin: 0.25rem 0;
+  }
+}
+
+/* *,
 ::after,
 ::before {
   box-sizing: border-box;
-}
+} */
 
 .hidden {
   display: none;
@@ -123,8 +207,8 @@ h1 {
   background-color: #fdeaea;
 }
 
-/* Main Content Styles */
 .main-content {
+  background-color: #f7f7f7;
   flex: 1;
   margin-left: 240px;
   min-height: 100vh;
@@ -179,11 +263,11 @@ h1 {
 }
 
 .bg-success {
-  background-color: #66CC66 !important;
+  background-color: #66cc66 !important;
 }
 
 .bg-warning {
-  background-color: #FFCC66 !important;
+  background-color: #ffcc66 !important;
 }
 
 .text-dark {
@@ -209,6 +293,33 @@ h1 {
   justify-content: space-between;
   align-items: center;
   border: none;
+}
+
+/* Styling Card Layanan */
+.layanan-card {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  border: 2px solid transparent;
+  background-color: #f8f9fa;
+}
+.layanan-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-color: #0d6efd; /* Warna biru primary */
+}
+.layanan-card.selected {
+  border-color: #0d6efd;
+  background-color: #e6f2ff;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+}
+
+/* Custom Scrollbar biar modalnya rapi */
+#layananCardContainer::-webkit-scrollbar {
+  width: 6px;
+}
+#layananCardContainer::-webkit-scrollbar-thumb {
+  background-color: #ccc;
+  border-radius: 10px;
 }
 
 .container-table {
@@ -396,9 +507,9 @@ h1 {
   padding: 0 12px;
   color: #444;
 }
-.btn-clear-search:hover { 
+.btn-clear-search:hover {
   background: #cfcfcf8f;
-  color: #444; 
+  color: #444;
 }
 
 .btn-save {
@@ -440,7 +551,6 @@ h1 {
   color: white;
   padding: 6px 12px;
   border-radius: 8px;
-  
 }
 
 .btn-add:hover {
@@ -518,13 +628,13 @@ h1 {
   background: none;
   border: none;
   cursor: pointer;
-  color: #38E54D;
+  color: #38e54d;
   transition: color 0.18s;
   display: inline-block;
 }
 .btn-setuju:hover {
   background-color: #38e54c31;
-  color: #38E54D;
+  color: #38e54d;
   text-decoration: none;
 }
 
@@ -593,7 +703,7 @@ h1 {
   padding: 4px 12px;
   margin-top: 4px;
   font-weight: 500;
-  background: #00CC33;
+  background: #00cc33;
   border: none;
   cursor: pointer;
   color: white;
@@ -613,7 +723,7 @@ h1 {
   font-size: 14px;
   border-radius: 8px;
   font-weight: 500;
-  background-color: #4CC9FF;
+  background-color: #4cc9ff;
   border: none;
   cursor: pointer;
   color: white;
@@ -641,26 +751,24 @@ h1 {
 
 .nav-tabs {
   font-weight: 500;
-  border-color: #4CC9FF;
+  border-color: #4cc9ff;
 }
 .nav-tabs .nav-link {
   padding: 5px 20px;
   color: #8f8f8f;
-  /* border-bottom: none; */
-  /* background-color: #d9d9d952; */
 }
 .nav-tabs .nav-link.active {
-  color: #4CC9FF;
-  border-inline-color: #4CC9FF;
-  border-block-start-color: #4CC9FF;
+  color: #4cc9ff;
+  border-inline-color: #4cc9ff;
+  border-block-start-color: #4cc9ff;
   /* border-bottom: none; */
 }
 
 .filter-riwayat {
-  margin-left:16px;
-  min-width:200px;
-  display:flex;
-  align-items:center;
+  margin-left: 16px;
+  min-width: 200px;
+  display: flex;
+  align-items: center;
 }
 
 /* Select Kota */
@@ -677,7 +785,7 @@ h1 {
 
 .form-control:focus,
 .select2-container--default .select2-selection--single:focus {
-  border-color: #05AADC;
+  border-color: #05aadc;
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 

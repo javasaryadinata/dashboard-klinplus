@@ -6,7 +6,6 @@
         <title>Klinplus | Booking Form</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         @vite(['resources/css/app-booking-form.css', 'resources/js/app.js'])
-        {{-- <script src="//unpkg.com/alpinejs" defer></script> --}}
         <style>[x-cloak] { display: none !important; }</style>
     </head>
 
