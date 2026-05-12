@@ -1,71 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --font-poppins: "Poppins", "Arial", sans-serif;
+  --font-poppins: "Poppins", "Arial", sans-serif !important;
   --color-cyan: #2ac6ea;
-  --color-dark-grey: #333333;
-  --color-grey: #737373;
-}
-
-@media (max-width: 767px) {
-  .dropdown-container {
-    width: 100vw;
-    left: 50% !important;
-    transform: translateX(-50%);
-    max-width: calc(100% - 2rem);
-  }
-}
-
-@layer base {
-  h1 {
-    color: var(--color-cyan);
-  }
-  h2 {
-    font-size: 1.5rem;
-    font-weight: 700;
-  }
-  h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-  }
-  h4 {
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
+  --color-dark-grey: #2e2e2e;
+  --color-grey: #4f4f4f;
 }
 
 @layer components {
-  .bodytext-dark {
-    font-weight: 500;
-    color: var(--color-dark-grey);
-  }
-  .bodytext-dark-sm {
-    font-size: 0.875rem; /* setara text-sm */
-    font-weight: 500;
-    color: var(--color-dark-grey);
-  }
-  .pricetext-sm {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--color-grey);
-  }
-  .bodytext-dark-xs {
-    font-size: 0.75rem; /* setara text-xs */
-    font-weight: 500;
-    color: var(--color-dark-grey);
-  }
-  .bodytext-dark-semibold {
-    font-weight: 600; /* setara font-semibold */
-    color: var(--color-dark-grey);
-  }
-  .bodytext-grey {
-    font-weight: 500;
-    color: var(--color-grey-body-text);
-  }
-  .price-grey {
-    font-size: 0.875rem;
-    color: var(--color-grey-body-text);
-  }
   .placeholder {
     font-weight: 400;
     font-size: 1rem;
@@ -96,26 +38,45 @@
   }
 }
 
-/* *,
+.material-symbols-rounded {
+  font-variation-settings:
+    "FILL" 0,
+    "wght" 200,
+    "GRAD" 0,
+    "opsz" 26;
+}
+
+body {
+  font-family: var(--font-poppins) !important;
+  background-color: #f7f7f7;
+  color: var(--color-dark-grey) !important;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0 !important;
+}
+
+*,
 ::after,
 ::before {
   box-sizing: border-box;
-} */
+}
 
 .hidden {
   display: none;
 }
 
-/* App Container */
 .app-container {
   display: flex;
   min-height: 100vh;
 }
 
-/* Sidebar Styles */
 .sidebar {
   width: 240px;
-  background-color: #fff;
+  background-color: #ffffff;
   box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   position: fixed;
   height: 100vh;
@@ -140,17 +101,15 @@
 }
 
 .sidebar-section {
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
 .sidebar-section-title {
   font-weight: 500;
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
-  color: #333;
   margin: 15px 0 10px 0;
-  padding: 0 10px;
-  letter-spacing: 1px;
+  padding: 8px 10px;
 }
 
 .sidebar-menu {
@@ -159,34 +118,27 @@
   margin: 0;
 }
 
-.sidebar-menu-item {
-  margin-bottom: 5px;
-}
-
 .sidebar-menu-item a {
+  color: var(--color-grey);
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 400;
   display: flex;
   align-items: center;
-  padding: 8px 22px;
-  color: #666666;
+  padding: 10px 24px;
   text-decoration: none;
   border-radius: 8px;
   transition: all 0.3s ease;
-  gap: 12px;
+  gap: 14px;
+  line-height: 1;
 }
 
 .sidebar-menu-item a:hover {
-  background-color: #ebeaea81;
+  background-color: #ebeaea8c;
 }
 
 .sidebar-menu-item a.active {
-  background-color: #2ac7ea18;
+  background-color: #2ac7ea28;
   color: #2ac6ea;
-}
-
-.sidebar-menu-item i {
-  font-size: 16px;
 }
 
 .sidebar-logout {
@@ -194,6 +146,7 @@
   margin-top: 30px;
   padding: 0 15px;
 }
+
 .logout-link {
   display: flex;
   align-items: center;
@@ -203,6 +156,7 @@
   border-radius: 4px;
   transition: all 0.3s ease;
 }
+
 .logout-link:hover {
   background-color: #fdeaea;
 }
@@ -216,34 +170,11 @@
   flex-direction: column;
 }
 
-.content-section {
-  flex: 1;
-  padding: 22px;
-}
-
-.welcome-message {
-  color: #444;
-  background-color: white;
-  padding: 20px;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-  margin-bottom: 18px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-}
-
 .content-container {
   background-color: white;
   padding: 20px;
   border-radius: 10px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-}
-
-.container {
-  padding-top: 10px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #f5f6f7;
 }
 
 .container-btn-tambah {
@@ -270,10 +201,6 @@
   background-color: #ffcc66 !important;
 }
 
-.text-dark {
-  color: #444 !important;
-}
-
 .card .form-control {
   border-color: 1px solid #f4f6f9;
   background-color: white;
@@ -295,7 +222,6 @@
   border: none;
 }
 
-/* Styling Card Layanan */
 .layanan-card {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
@@ -305,7 +231,7 @@
 .layanan-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #0d6efd; /* Warna biru primary */
+  border-color: #0d6efd;
 }
 .layanan-card.selected {
   border-color: #0d6efd;
@@ -313,7 +239,6 @@
   box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
 }
 
-/* Custom Scrollbar biar modalnya rapi */
 #layananCardContainer::-webkit-scrollbar {
   width: 6px;
 }
@@ -329,10 +254,8 @@
   background-color: white;
 }
 
-/* Table Styles - Optimized */
 .table-wrapper {
   overflow-x: auto;
-  /* display: flex; */
 }
 
 .customer-table,
@@ -391,14 +314,11 @@
 .table th,
 .pembayaran-table th,
 .riwayat-table th {
-  background-color: #f4f4f4a9;
-  color: #9c9c9c;
-  border-top: 2px solid #dddddd59;
-  border-bottom: 2px solid #dddddd59;
-  font-weight: 500;
+  background-color: #eeeeeea9;
+  border-bottom: 1px solid #e3e3e3;
+  font-weight: 600;
   padding: 10px 10px;
   text-align: left;
-  border-color: #e3e3e3;
 }
 
 .order-table th:nth-child(1),
@@ -410,7 +330,7 @@
 .staf-table th:nth-child(1),
 .layanan-kategori-table th:nth-child(1),
 .layanan-table th:nth-child(1) {
-  border-left: 2px solid #e3e3e3;
+  border-top-left-radius: 8px;
 }
 .order-table th:nth-child(10),
 .table th:nth-child(6),
@@ -420,7 +340,7 @@
 .staf-table th:nth-child(5),
 .layanan-kategori-table th:nth-child(3),
 .layanan-table th:nth-child(5) {
-  border-right: 2px solid #e3e3e3;
+  border-top-right-radius: 8px;
   text-align: center;
 }
 
@@ -433,39 +353,13 @@
 .staf-table td,
 .layanan-kategori-table td,
 .layanan-table td {
-  color: #666;
-  border-bottom: 2px solid #e3e3e3;
+  border-bottom: 1px solid #e3e3e3;
   padding: 8px;
-  font-weight: 500;
+  font-weight: 400;
   text-align: left;
   word-wrap: break-word;
-  vertical-align: baseline;
 }
 
-.order-table td:nth-child(1),
-.table td:nth-child(1),
-.jadwal-table td:nth-child(1),
-.pembayaran-table td:nth-child(1),
-.riwayat-table td:nth-child(1),
-.customer-table td:nth-child(1),
-.staf-table td:nth-child(1),
-.layanan-kategori-table td:nth-child(1),
-.layanan-table td:nth-child(1) {
-  border-left: 2px solid #e3e3e3;
-}
-.order-table td:nth-child(10),
-.table td:nth-child(6),
-.jadwal-table td:nth-child(14),
-.pembayaran-table td:nth-child(10),
-.customer-table td:nth-child(8),
-.staf-table td:nth-child(5),
-.layanan-kategori-table td:nth-child(3),
-.layanan-table td:nth-child(5) {
-  border-right: 2px solid #e3e3e3;
-  text-align: center;
-}
-
-/*Button*/
 .btn {
   cursor: pointer;
   font-size: 14px;
@@ -493,6 +387,7 @@
   transition: all 0.3s ease;
   text-align: center;
 }
+
 .btn-new:hover {
   background-color: #27b9d9;
   color: white;
@@ -540,6 +435,7 @@
   transition: all 0.3s ease;
   text-align: center;
 }
+
 .btn-edit:hover {
   background-color: #27b9d9;
   color: white;
@@ -591,6 +487,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-detail:hover {
   background-color: #2ac7ea2d;
   color: #2ac6ea;
@@ -618,6 +515,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-invoice:hover {
   background-color: #4f52ff2b;
   color: #4f52ffa2;
@@ -632,6 +530,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-setuju:hover {
   background-color: #38e54c31;
   color: #38e54d;
@@ -646,6 +545,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-cancel:hover {
   background-color: #ff00001f;
   color: #ff0000a8;
@@ -661,6 +561,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-hapus:hover {
   background-color: #babec631;
   color: #ced1d5;
@@ -678,6 +579,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-hapus-layanan:hover {
   background-color: #babec63d;
   color: #babec6;
@@ -693,6 +595,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-reschedule:hover {
   background-color: #fcbf1838;
   color: #fcbf18;
@@ -711,6 +614,7 @@
   display: inline-block;
   line-height: 22px;
 }
+
 .btn-lunas:hover {
   font-weight: 500;
   background-color: #00b52d;
@@ -730,6 +634,7 @@
   transition: color 0.18s;
   display: inline-block;
 }
+
 .btn-edit-petugas:hover {
   background-color: #3db9ee;
   color: white;
@@ -753,15 +658,16 @@
   font-weight: 500;
   border-color: #4cc9ff;
 }
+
 .nav-tabs .nav-link {
   padding: 5px 20px;
   color: #8f8f8f;
 }
+
 .nav-tabs .nav-link.active {
   color: #4cc9ff;
   border-inline-color: #4cc9ff;
   border-block-start-color: #4cc9ff;
-  /* border-bottom: none; */
 }
 
 .filter-riwayat {
@@ -771,14 +677,15 @@
   align-items: center;
 }
 
-/* Select Kota */
 .select2-container--default .select2-selection--single {
   height: 38px;
   border: 1px solid #ced4da;
 }
+
 .select2-container--default .select2-selection--single .select2-selection__rendered {
   line-height: 36px;
 }
+
 .select2-container--default .select2-selection--single .select2-selection__arrow {
   height: 36px;
 }
@@ -789,25 +696,41 @@
   box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
 }
 
-/* Empty State */
 .empty-message {
   text-align: center;
   color: #718096;
   padding: 16px;
 }
 
-/* Footer Styles */
-.main-footer {
-  padding: 15px 30px;
-  background-color: #f4f6f9;
-  border-top: 1px solid #eaeaea;
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.footer-left,
-.footer-right {
-  padding: 5px 0;
+@media (max-width: 1400px) {
+  .sidebar {
+    width: 200px;
+  }
+  .main-content {
+    margin-left: 200px;
+  }
+  .sidebar-section-title {
+    font-size: 10px;
+  }
+  .sidebar-menu-item a {
+    font-size: 12px;
+    padding: 7px 20px;
+  }
+  .sidebar-title {
+    font-size: 20px;
+  }
+  .sidebar-logout {
+    margin-top: 15px;
+  }
+  .dropdown-container {
+    width: 100vw;
+    left: 50% !important;
+    transform: translateX(-50%);
+    max-width: calc(100% - 2rem);
+  }
+  .main-footer {
+    padding: 12px 20px;
+    font-size: 11px;
+    font-weight: 400;
+  }
 }

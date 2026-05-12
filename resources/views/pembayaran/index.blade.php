@@ -1,198 +1,126 @@
 @extends('layouts.app')
 
 @section('title-content')
-<h1>Pembayaran</h1>
+<h3 class="font-semibold text-3xl 2xl:text-4xl">Pembayaran</h3>
 @endsection
 
 @section('content')
-{{-- <div class="container">
-    <div class="btn-petugas">
-        <a href="#" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#tambahPembayaranModal">
-            Tambah Pembayaran Baru
-        </a>
-    </div>
-</div> --}}
-<form method="GET" action="{{ route('pembayaran.index') }}">
-    <div class="input-group">
-        <input 
-            type="text" 
-            class="form-control" 
-            name="search" 
-            placeholder="Cari"
-            value="{{ request('search') }}" 
-            id="search-input"
-            style="max-width: 300px;"
-        >
-        @if(request('search'))
-            <a href="{{ route('pembayaran.index') }}" class="btn-clear-search" id="btn-clear-search" style="display:flex; align-items:center; padding: 0 10px;">
-                <i class="bi bi-x-lg"></i>
-            </a>
-        @endif
-        {{-- <button class="btn btn-new" type="submit">
-            <i class="bi bi-search"></i> Cari
-        </button> --}}
-    </div>
-</form>
-<div class="container-table">
-    <div class="table-wrapper">
-        <table class="pembayaran-table">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>ID Order</th>
-                    <th>Nama Pelanggan</th>
-                    <th>Alamat</th>
-                    <th>Layanan</th>
-                    <th>
-                        Tanggal
-                        <a href="{{ route('pembayaran.index', array_merge(request()->except('page'), [
-                            'sort' => ($sort === 'asc' ? 'desc' : 'asc'), 
-                            'search' => $search
-                        ])) }}" style="text-decoration:none; color:inherit;">
-                            @if($sort === 'asc')
-                                <i class="bi bi-arrow-up"></i>
-                            @else
-                                <i class="bi bi-arrow-down"></i>
-                            @endif
-                        </a>
-                    </th>
-                    <th>Diskon</th>
-                    <th>Total Harga</th>
-                    <th>Status Pembayaran</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($orders as $order)
-                <tr>
-                    <td>{{ $loop->iteration }}</td>
-                    <td>{{ $order->id_order }}</td>
-                    <td>{{ $order->pelanggan->nama_pelanggan }}</td>
-                    <td>{{ $order->alamat_lokasi ?? '-' }}</td>
-                    <td>
-                        @php
-                            $layananList = $order->orderDetails->map(function($detail) {
-                                $root = $detail->layananSubkategori->rootKategori->nama_rootkategori ?? '';
-                                $sub = $detail->layananSubkategori->nama_subkategori ?? '';
-                                return trim($root . ' - ' . $sub, ' -');
-                            })->unique()->implode(', ');
-                        @endphp
-                        {{ $layananList ?: '-' }}
-                    </td>
-                    <td>{{ $order->tanggal_pengerjaan ? \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') : '-'  }}</td>
-                    <td>
-                        {{-- Diskon, jika ada field diskon di order --}}
-                        {{ $order->diskon ? 'Rp ' . number_format($order->diskon, 0, ',', '.') : '-' }}
-                    </td>
-                    <td>
-                        @php
-                            $totalHarga = $order->orderDetails->sum('harga');
-                        @endphp
-                        Rp {{ number_format($totalHarga, 0, ',', '.') }}
-                    </td>
-                    <td>
-                        @php
-                            $metode = $order->metode_pembayaran ? ucfirst($order->metode_pembayaran) : '-';
-                            $tipe = $order->tipe_pembayaran ? ucfirst($order->tipe_pembayaran) : '-';
-                        @endphp
-                        {{ $metode }} / {{ $tipe }}
-                    </td>
-                    <td>
-                        <div class="action-buttons">
-                            <a href="{{ route('orders.show', $order->id_order) }}" class="btn-action btn-detail" title="Lihat Detail">
-                                <i class="bi bi-pencil-fill"></i>
-                            </a>
-                            <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="btn-action btn-invoice" title="Invoice">
-                                <i class="bi bi-file-earmark-arrow-down-fill"></i>
-                            </a>
-                            @if($order->metode_pembayaran !== 'Lunas')
-                            <form action="{{ route('pembayaran.setLunas', $order->id_order) }}" method="POST">
-                                @csrf
-                                <button type="submit" class="btn-action btn-setuju">
-                                    <i class="bi bi-check-square-fill"></i>
-                                </button>
-                            </form>
-                            @else
-                            <span class="badge bg-success">Lunas</span>
-                            @endif
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- Tambah Pembayaran Modal -->
-<div class="modal fade" id="tambahPembayaranModal" tabindex="-1" aria-labelledby="tambahPembayaranModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-white text-dark">
-                <h5 class="modal-title" id="tambahPembayaranModalLabel">Tambah Pembayaran Baru</h5>
-                <button type="button" class="btn-close btn-close-dark" data-bs-dismiss="modal" aria-label="Close"></button>
+<div>
+    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
+        <form method="GET" action="{{ route('pembayaran.index') }}" autocomplete="off" class="relative w-full max-w-md">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <svg class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
             </div>
-            <form id="formTambahPembayaran" method="POST" action="#">
-                @csrf
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="order_id" class="form-label">ID Order</label>
-                            <select class="form-select" id="order_id" name="order_id" required>
-                                <option value="" selected disabled>Pilih ID Order</option>
-                                
-                            </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="nama_pelanggan" class="form-label">Nama Pelanggan</label>
-                            <input type="text" class="form-control" id="nama_pelanggan" readonly>
-                    </div>
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="layanan" class="form-label">Layanan</label>
-                            <input type="text" class="form-control" id="layanan" name="layanan" readonly>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="total_harga" class="form-label">Total Harga</label>
-                            <input type="text" class="form-control" id="total_harga" name="total_harga" readonly>
-                        </div>
-                    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="diskon" class="form-label">Diskon (Rp)</label>
-                            <input type="number" class="form-control" id="diskon" name="diskon" min="0" value="0">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="total_bayar" class="form-label">Total Bayar</label>
-                            <input type="text" class="form-control" id="total_bayar" name="total_bayar" readonly>
-                        </div>
-                    </div>
+            <input type="text" name="search" placeholder="Cari" value="{{ request('search') }}" 
+                class="w-full bg-white border border-gray-300 pl-10 pr-10 py-2.5 rounded-xl text-sm focus:ring-2 focus:ring-cyan/20 focus:border-cyan outline-none transition-all shadow-sm">
+            
+            @if(request('search'))
+                <a href="{{ route('pembayaran.index') }}" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </a>
+            @endif
+        </form>
+    </div>
 
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label for="metode_pembayaran" class="form-label">Metode Pembayaran</label>
-                            <select class="form-select" id="metode_pembayaran" name="metode_pembayaran" required>
-                                <option value="" selected disabled>Pilih Metode</option>
-                                <option value="Tunai">Tunai</option>
-                                <option value="Transfer Bank">Transfer Bank</option>
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label for="tanggal_pembayaran" class="form-label">Tanggal Pembayaran</label>
-                            <input type="date" class="form-control" id="tanggal_pembayaran" name="tanggal_pembayaran" required>
-                        </div>
-                    </div>
+    @if(session('success'))
+    <div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-xl mb-4 text-sm" id="pembayaran-success-alert">
+        {{ session('success') }}
+    </div>
+    @endif
 
-                    <div class="mb-3">
-                        <label for="keterangan" class="form-label">Keterangan</label>
-                        <textarea class="form-control" id="keterangan" name="keterangan" rows="2"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary">Simpan Pembayaran</button>
-                </div>
-            </form>
+    <div class="overflow-x-auto w-full">
+        <div class="min-w-[1000px]">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-gray-50 border-b border-gray-200 text-gray-500 text-xs uppercase tracking-wider">
+                    <tr>
+                        <th class="px-4 py-3 font-semibold">No</th>
+                        <th class="px-4 py-3 font-semibold">ID Order</th>
+                        <th class="px-4 py-3 font-semibold">Nama Pelanggan</th>
+                        <th class="px-4 py-3 font-semibold w-48">Alamat</th>
+                        <th class="px-4 py-3 font-semibold w-48">Layanan</th>
+                        <th class="px-4 py-3 font-semibold whitespace-nowrap">
+                            <a href="{{ route('pembayaran.index', array_merge(request()->except('page'), [
+                                'sort' => ($sort === 'asc' ? 'desc' : 'asc'),
+                                'search' => $search
+                            ])) }}" class="flex items-center gap-1 hover:text-cyan transition-colors">
+                            Tanggal
+                                @if($sort === 'asc')
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" /></svg>
+                                @else
+                                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                @endif
+                            </a>
+                        </th>
+                        <th class="px-4 py-3 font-semibold">Diskon</th>
+                        <th class="px-4 py-3 font-semibold">Total Harga</th>
+                        <th class="px-4 py-3 font-semibold">Status Pembayaran</th>
+                        <th class="px-4 py-3 font-semibold text-center">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 text-sm text-gray-700">
+                    @forelse($orders as $order)
+                    <tr class="hover:bg-gray-50/50 transition-colors align-top">
+                        <td class="px-4 py-3">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-3 font-medium text-gray-900">{{ $order->id_order }}</td>
+                        <td class="px-4 py-3">{{ $order->pelanggan->nama_pelanggan }}</td>
+                        <td class="px-4 py-3 text-xs leading-relaxed text-gray-500">{{ $order->alamat_lokasi ?? '-' }}</td>
+                        <td class="px-4 py-3 text-xs text-gray-600">
+                            @php
+                                $layananList = $order->orderDetails->map(function($detail) {
+                                    $root = $detail->layananSubkategori->rootKategori->nama_rootkategori ?? '';
+                                    $sub = $detail->layananSubkategori->nama_subkategori ?? '';
+                                    return trim($root . ' - ' . $sub, ' -');
+                                })->unique()->implode(', ');
+                            @endphp
+                            {{ $layananList ?: '-' }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">{{ $order->tanggal_pengerjaan ? \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') : '-'  }}</td>
+                        <td class="px-4 py-3 text-red-500 font-medium whitespace-nowrap">
+                            {{ $order->diskon ? 'Rp ' . number_format($order->diskon, 0, ',', '.') : '-' }}
+                        </td>
+                        <td class="px-4 py-3 font-semibold text-cyan whitespace-nowrap">
+                            @php
+                                $totalHarga = $order->orderDetails->sum('harga');
+                            @endphp
+                            Rp {{ number_format($totalHarga, 0, ',', '.') }}
+                        </td>
+                        <td class="px-4 py-3 whitespace-nowrap">
+                            @php
+                                $metode = $order->metode_pembayaran ? ucfirst($order->metode_pembayaran) : '-';
+                                $tipe = $order->tipe_pembayaran ? ucfirst($order->tipe_pembayaran) : '-';
+                            @endphp
+                            <span class="px-2 py-1 bg-yellow-50 text-yellow-700 border border-yellow-200 rounded text-[11px] font-bold uppercase tracking-wider shadow-sm">{{ $metode }} - {{ $tipe }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <div class="flex items-center gap-1 justify-center">
+                                <a href="{{ route('orders.show', ['id_order' => $order->id_order, 'ref' => 'pembayaran']) }}" class="p-1.5 text-cyan hover:bg-cyan/10 rounded-md transition-colors" title="Lihat Detail">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </a>
+                                <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors" title="Cetak Invoice">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                </a>
+
+                                @if($order->metode_pembayaran !== 'Lunas')
+                                <form action="{{ route('pembayaran.setLunas', $order->id_order) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="p-1.5 text-green-500 hover:bg-green-50 rounded-md transition-colors" title="Tandai Lunas" onclick="return confirm('Apakah pembayaran sisa tagihan sudah diterima dan order ini akan dilunasi?')">
+                                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    </button>
+                                </form>
+                                @else
+                                    <span class="px-2 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded uppercase tracking-wider ml-1">Lunas</span>
+                                @endif
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="10" class="text-center py-8 text-gray-500">Belum ada data pembayaran tagihan (DP) yang menunggu pelunasan.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
@@ -200,42 +128,16 @@
 
 @push('scripts')
 <script>
-$(document).ready(function() {
-    // Set default date to today
-    $('#tanggal_pembayaran').val(new Date().toISOString().substr(0, 10));
-
-    // When order selection changes
-    $('#order_id').change(function() {
-        const orderId = $(this).val();
-        if (orderId) {
-            // Fetch order details via AJAX
-            $.get(`/orders/${orderId}`, function(data) {
-                $('#nama_pelanggan').val(data.pelanggan.nama);
-                $('#layanan').val(data.layanan.nama);
-                $('#total_harga').val(formatRupiah(data.total_harga));
-                calculateTotalBayar();
-            }).fail(function() {
-                alert('Gagal memuat data order');
-            });
+    document.addEventListener('DOMContentLoaded', function() {
+        const alert = document.getElementById('pembayaran-success-alert');
+        if (alert) {
+            setTimeout(() => {
+                alert.style.transition = 'opacity 0.5s';
+                alert.style.opacity = 0;
+                setTimeout(() => alert.remove(), 500);
+            }, 3000); // Alert hilang dalam 3 detik
         }
     });
-
-    // When diskon changes
-    $('#diskon').on('input', calculateTotalBayar);
-
-    // Calculate total bayar
-    function calculateTotalBayar() {
-        const totalHarga = parseFloat($('#total_harga').val().replace(/\D/g,'')) || 0;
-        const diskon = parseFloat($('#diskon').val()) || 0;
-        const totalBayar = totalHarga - diskon;
-        $('#total_bayar').val(formatRupiah(totalBayar));
-    }
-
-    // Format to Rupiah
-    function formatRupiah(amount) {
-        return 'Rp ' + amount.toLocaleString('id-ID');
-    }
-});
 </script>
 @endpush
 

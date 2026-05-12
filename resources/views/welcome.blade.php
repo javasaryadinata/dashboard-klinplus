@@ -1,11 +1,10 @@
 @extends('layouts.app')
 
 @section('title-content')
-<h1 class="text-2xl font-bold mb-6">Dashboard</h1>
+<h3 class="font-semibold text-3xl 2xl:text-4xl">Dashboard</h3>
 @endsection
-
 @section('content')
-<div class="bg-white p-6 rounded-lg shadow-md">
+<div>
     <p>Selamat datang di KlinPlus.id</p>
 </div>
 @endsection
