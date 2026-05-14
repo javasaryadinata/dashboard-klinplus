@@ -27,7 +27,7 @@ class BookingFormController extends Controller
                 'layanan' => $layanan,
             ]);
         } catch (\Exception $e) {
-            return back()->withError('Gagal memuat data kota: ' . $e->getMessage());
+            return back()->with('error', 'Gagal memuat data kota: ' . $e->getMessage());
         }
     }
 
