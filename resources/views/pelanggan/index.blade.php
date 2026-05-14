@@ -200,7 +200,7 @@
                     <div class="p-6 space-y-4 bg-gray-50/30 max-h-[70vh] overflow-y-auto">
                         <div x-show="isEdit" class="mb-2">
                             <label class="block text-xs font-medium text-gray-700 mb-1">ID Pelanggan</label>
-                            <input type="text" x-model="formData.id_pelanggan" class="w-full bg-gray-100 border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm outline-none cursor-not-allowed font-medium" readonly>
+                            <input type="text" :value="isEdit ? formData.id_pelanggan : 'Dibuat Otomatis'" class="w-full bg-gray-100 border border-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-sm outline-none cursor-not-allowed font-medium" readonly>
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -279,5 +279,3 @@
     });
 </script>
 @endpush
-
-

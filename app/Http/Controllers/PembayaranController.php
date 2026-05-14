@@ -1,9 +1,8 @@
 <?php
-
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Order;
+use Illuminate\Http\Request;
 
 class PembayaranController extends Controller
 {
@@ -15,11 +14,11 @@ class PembayaranController extends Controller
         $orders = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori', 'orderDetails.petugas'])
             ->where('status', 'Selesai')->where('metode_pembayaran', 'DP')
             ->when($search, function ($query) use ($search) {
-                $query->where(function($q) use ($search) {
+                $query->where(function ($q) use ($search) {
                     $q->where('id_order', 'like', "%$search%")
-                    ->orWhereHas('pelanggan', function ($sub) use ($search) {
-                        $sub->where('nama_pelanggan', 'like', "%$search%");
-                    });
+                        ->orWhereHas('pelanggan', function ($sub) use ($search) {
+                            $sub->where('nama_pelanggan', 'like', "%$search%");
+                        });
                 });
             })
             ->orderBy('tanggal_pengerjaan', $sort)
@@ -28,9 +27,9 @@ class PembayaranController extends Controller
         return view('pembayaran.index', compact('orders', 'search', 'sort'));
     }
 
-    public function setLunas($id_order)
+    public function setLunas(string $id_order)
     {
-        $order = Order::where('id_order', $id_order)->firstOrFail();
+        $order                    = Order::query()->where('id_order', $id_order)->firstOrFail();
         $order->metode_pembayaran = 'Lunas';
         $order->save();
 

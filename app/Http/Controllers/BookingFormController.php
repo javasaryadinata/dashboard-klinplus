@@ -35,7 +35,7 @@ class BookingFormController extends Controller
     {
         $now           = Carbon::now();
         $prefix        = 'CS' . $now->format('ym');
-        $lastPelanggan = Pelanggan::where('id_pelanggan', 'like', $prefix . '%')
+        $lastPelanggan = Pelanggan::query()->where('id_pelanggan', 'like', $prefix . '%')
             ->orderBy('id_pelanggan', 'desc')
             ->first();
         $sequence = $lastPelanggan ? (int) substr($lastPelanggan->id_pelanggan, -3) + 1 : 1;
@@ -46,7 +46,7 @@ class BookingFormController extends Controller
     {
         $now       = Carbon::now();
         $prefix    = 'ORD-' . $now->format('ym');
-        $lastOrder = Order::where('id_order', 'like', $prefix . '%')
+        $lastOrder = Order::query()->where('id_order', 'like', $prefix . '%')
             ->orderBy('id_order', 'desc')
             ->first();
         $sequence = $lastOrder ? (int) substr($lastOrder->id_order, -3) + 1 : 1;
@@ -56,7 +56,7 @@ class BookingFormController extends Controller
     public function checkPromo(Request $request)
     {
         $kode  = $request->query('kode');
-        $promo = \App\Models\Promo::whereRaw('LOWER(kode) = ?', [strtolower($kode)])->first();
+        $promo = \App\Models\Promo::query()->whereRaw('LOWER(kode) = ?', [strtolower($kode)], 'and')->first();
 
         if ($promo) {
             return response()->json([
@@ -97,7 +97,7 @@ class BookingFormController extends Controller
             return back()->withErrors($validator)->withInput();
         }
 
-        $pelanggan = Pelanggan::where('telp_pelanggan', $request->whatsapp)->first();
+        $pelanggan = Pelanggan::query()->where('telp_pelanggan', $request->whatsapp)->first();
         if (! $pelanggan) {
             $idPelanggan = $this->generatePelangganId();
             $pelanggan   = Pelanggan::create([

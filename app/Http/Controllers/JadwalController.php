@@ -13,40 +13,40 @@ class JadwalController extends Controller
 {
     public function index(Request $request)
     {
-        $search = $request->query('search');
-        $sort = $request->query('sort', 'desc');
+        $search     = $request->query('search');
+        $sort       = $request->query('sort', 'desc');
         $sortDurasi = $request->query('sort_durasi', null);
-        
+
         $jadwalsQuery = Jadwal::with([
-                'order.pelanggan',
-                'order.orderDetails.layananSubkategori.rootKategori',
-                'order.orderDetails.petugas'
-            ])
+            'order.pelanggan',
+            'order.orderDetails.layananSubkategori.rootKategori',
+            'order.orderDetails.petugas',
+        ])
             ->where('status', 'Scheduled')
             ->when($search, function ($query, $search) {
                 $query->where(function ($q) use ($search) {
                     $q->where('id_order', 'like', "%$search%")
-                    ->orWhereHas('order.pelanggan', function($sub) use ($search) {
-                        $sub->where('nama_pelanggan', 'like', "%$search%");
-                    })
-                    ->orWhereHas('order', function($sub) use ($search) {
-                        $sub->where('alamat_lokasi', 'like', "%$search%");
-                        $sub->orWhere('metode_pembayaran', 'like', "%$search%");
-                    })
-                    ->orWhereHas('order.orderDetails.petugas', function($sub) use ($search) {
-                        $sub->where('nama_petugas', 'like', "%$search%");
-                    });
+                        ->orWhereHas('order.pelanggan', function ($sub) use ($search) {
+                            $sub->where('nama_pelanggan', 'like', "%$search%");
+                        })
+                        ->orWhereHas('order', function ($sub) use ($search) {
+                            $sub->where('alamat_lokasi', 'like', "%$search%");
+                            $sub->orWhere('metode_pembayaran', 'like', "%$search%");
+                        })
+                        ->orWhereHas('order.orderDetails.petugas', function ($sub) use ($search) {
+                            $sub->where('nama_petugas', 'like', "%$search%");
+                        });
                 });
             })
             ->orderBy(Order::select('tanggal_pengerjaan')
-                ->whereColumn('orders.id_order', 'jadwals.id_order'),
+                    ->whereColumn('orders.id_order', 'jadwals.id_order'),
                 $sort === 'asc' ? 'asc' : 'desc'
             );
 
         $jadwals = $jadwalsQuery->get();
 
         if ($sortDurasi) {
-            $jadwals = $jadwals->sortBy(function($jadwal) {
+            $jadwals = $jadwals->sortBy(function ($jadwal) {
                 return $jadwal->order ? $jadwal->order->orderDetails->sum('durasi_layanan') : 0;
             }, SORT_REGULAR, $sortDurasi === 'desc')->values();
         }
@@ -54,46 +54,40 @@ class JadwalController extends Controller
         return view('jadwal.index', compact('jadwals', 'search', 'sort', 'sortDurasi'));
     }
 
-    public function downloadWorkingOrder($id_order)
+    public function downloadWorkingOrder(string $id_order)
     {
         $order = Order::with([
             'pelanggan',
             'orderDetails.layananSubkategori.rootKategori',
-            'orderDetails.petugas'
+            'orderDetails.petugas',
         ])->where('id_order', $id_order)->firstOrFail();
 
-        // Kirim ke view working_order.blade.php (buat view ini)
         $pdf = PDF::loadView('jadwal.working_order', compact('order'));
 
-        // Nama file WO
         $filename = 'WorkingOrder-' . $order->id_order . '.pdf';
 
         return $pdf->download($filename);
     }
 
-    public function previewWorkingOrder($id_order)
+    public function previewWorkingOrder(string $id_order)
     {
         $order = Order::with([
             'pelanggan',
             'orderDetails.layananSubkategori.rootKategori',
-            'orderDetails.petugas'
+            'orderDetails.petugas',
         ])->where('id_order', $id_order)->firstOrFail();
 
         return view('jadwal.working_order', compact('order'));
     }
 
-    public function doReschedule(Request $request, $id_order)
+    public function doReschedule(Request $request, string $id_order)
     {
-        // dd('MASUK CONTROLLER');
-
         DB::beginTransaction();
         try {
             $oldOrder = Order::with(['orderDetails.petugas'])->findOrFail($id_order);
 
-            // Generate ID order baru (pakai method di OrderController, atau copy saja)
             $newIdOrder = (new \App\Http\Controllers\OrderController)->generateOrderId();
 
-            // Buat order baru (boleh custom field sesuai kebutuhan)
             $newOrder = Order::create([
                 'id_order'           => $newIdOrder,
                 'id_pelanggan'       => $oldOrder->id_pelanggan,
@@ -112,7 +106,6 @@ class JadwalController extends Controller
                 'alasan_reschedule'  => $request->input('alasan_reschedule', null),
             ]);
 
-            // Copy order detail & petugas
             foreach ($oldOrder->orderDetails as $oldDetail) {
                 $newDetail = $newOrder->orderDetails()->create([
                     'id_layanan_subkategori' => $oldDetail->id_layanan_subkategori,
@@ -120,18 +113,16 @@ class JadwalController extends Controller
                     'durasi_layanan'         => $oldDetail->durasi_layanan,
                     'subtotal'               => $oldDetail->subtotal,
                 ]);
-                // Copy petugas
+
                 foreach ($oldDetail->petugas as $ptg) {
                     $newDetail->petugas()->attach($ptg->id_petugas);
                 }
             }
 
-            // Update status order lama
             $oldOrder->status = 'Rescheduled';
             $oldOrder->save();
 
-            // Update status pada tabel jadwals juga
-            Jadwal::where('id_order', $oldOrder->id_order)->update(['status' => 'Rescheduled']);
+            Jadwal::query()->where('id_order', $oldOrder->id_order)->update(['status' => 'Rescheduled']);
 
             DB::commit();
 
@@ -143,42 +134,37 @@ class JadwalController extends Controller
         }
     }
 
-    public function rescheduleUpdate(Request $request, $id_order)
+    public function rescheduleUpdate(Request $request, string $id_order)
     {
-        $order = Order::where('id_order', $id_order)->firstOrFail();
-        // validasi dan update data
+        $order                     = Order::query()->where('id_order', $id_order)->firstOrFail();
         $order->tanggal_pengerjaan = $request->tanggal_pengerjaan;
         $order->jam_pengerjaan     = $request->jam_pengerjaan;
-        // ...update field lain...
-        $order->status = 'Rescheduled';
+        $order->status             = 'Rescheduled';
         $order->save();
 
         return redirect()->route('jadwal.index')->with('success', 'Order berhasil di-reschedule.');
     }
 
-    public function update(Request $request, $id_order)
+    public function update(Request $request, string $id_order)
     {
-        $jadwal = Jadwal::where('id_order', $id_order)->firstOrFail();
+        $jadwal = Jadwal::query()->where('id_order', $id_order)->firstOrFail();
 
         $jadwal->update([
             'status'             => 'rescheduled',
             'tanggal_pengerjaan' => $request->input('tanggal_pengerjaan'),
             'waktu_pengerjaan'   => $request->input('waktu_pengerjaan'),
-            // tambahkan field lain yang ingin di update
         ]);
 
         return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil direschedule.');
     }
 
-    public function selesai($id_order)
+    public function selesai(string $id_order)
     {
-        // Ubah status di tabel orders
-        $order         = Order::where('id_order', $id_order)->firstOrFail();
+        $order         = Order::query()->where('id_order', $id_order)->firstOrFail();
         $order->status = 'selesai';
         $order->save();
 
-        // (Opsional) Jika masih pakai tabel jadwals, update juga di sana
-        $jadwal = Jadwal::where('id_order', $id_order)->first();
+        $jadwal = Jadwal::query()->where('id_order', $id_order)->first();
         if ($jadwal) {
             $jadwal->status = 'selesai';
             $jadwal->save();
@@ -187,14 +173,11 @@ class JadwalController extends Controller
         return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil diselesaikan.');
     }
 
-    public function destroy($id_order)
+    public function destroy(string $id_order)
     {
-        // Hapus order detail terlebih dahulu (jika ada relasi)
-        OrderDetail::where('id_order', $id_order)->delete();
+        OrderDetail::query()->where('id_order', $id_order)->delete();
 
-        // Hapus order utama
-        $order = Order::where('id_order', $id_order)->firstOrFail();
-        $order->delete();
+        Order::query()->where('id_order', $id_order)->delete();
 
         return redirect()->route('jadwal.index')->with('success', 'Jadwal berhasil dihapus.');
     }

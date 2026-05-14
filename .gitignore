@@ -3,6 +3,7 @@ vendor/
 .env
 storage/
 /public/hot
+Klinplus Resend API Key.txt
 
 # IDE Helper
 _ide_helper.php

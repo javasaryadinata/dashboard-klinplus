@@ -24,13 +24,6 @@ class OrderController extends Controller
         return view('orders.index', compact('orders', 'pelanggans', 'promos', 'sort'));
     }
 
-    // public function create()
-    // {
-    //     $pelanggans = Pelanggan::all();
-    //     $layanans = LayananSubkategori::with('rootKategori')->get();
-    //     return view('orders.create', compact('pelanggans', 'layanans'));
-    // }
-
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -41,14 +34,11 @@ class OrderController extends Controller
             'tanggal_pengerjaan'    => 'required|date|after_or_equal:today',
             'jam_pengerjaan'        => 'required|date_format:H:i',
             'total_harga'           => 'required|numeric',
-            // 'diskon' => 'nullable|numeric',
             'kode'                  => 'nullable|string|max:20',
             'layanan_subkategori'   => 'required|array|min:1',
             'layanan_subkategori.*' => 'exists:layanan_subkategori,id',
-            // 'harga_layanan' => 'required|array'
         ]);
 
-        // Ambil diskon dari kode promo jika ada
         $diskon = 0;
         if (! empty($validated['kode'])) {
             $promo = DB::table('promo')
@@ -75,7 +65,7 @@ class OrderController extends Controller
             ]);
 
             foreach ($request->layanan_subkategori as $id_layanan) {
-                $layanan = LayananSubkategori::find($id_layanan);
+                $layanan = LayananSubkategori::query()->find($id_layanan);
                 OrderDetail::create([
                     'id_order'               => $order->id_order,
                     'id_layanan_subkategori' => $id_layanan,
@@ -91,7 +81,7 @@ class OrderController extends Controller
         }
     }
 
-    public function show($id)
+    public function show(string $id)
     {
         $order    = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori', 'orderDetails.petugas'])->findOrFail($id);
         $layanans = LayananSubkategori::with('rootKategori')->get();
@@ -100,7 +90,7 @@ class OrderController extends Controller
         return view('orders.detail', compact('order', 'layanans', 'petugas'));
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, string $id)
     {
         $validated = $request->validate([
             'alamat_lokasi'      => 'required|string|max:255',
@@ -128,7 +118,7 @@ class OrderController extends Controller
         }
     }
 
-    public function invoicePdf($id_order)
+    public function invoicePdf(string $id_order)
     {
         $order = Order::with(['pelanggan', 'orderDetails.layananSubkategori', 'orderDetails.petugas'])->findOrFail($id_order);
 
@@ -136,14 +126,14 @@ class OrderController extends Controller
         return $pdf->download('Invoice_' . $order->id_order . '.pdf');
     }
 
-    public function previewInvoice($id_order)
+    public function previewInvoice(string $id_order)
     {
         $order = Order::with(['pelanggan', 'orderDetails.layananSubkategori', 'orderDetails.petugas'])->findOrFail($id_order);
 
         return view('orders.invoice_pdf', compact('order'));
     }
 
-    public function destroy($id)
+    public function destroy(string $id)
     {
         $order = Order::findOrFail($id);
 
@@ -159,15 +149,14 @@ class OrderController extends Controller
         }
     }
 
-    public function cancel($id_order)
+    public function cancel(string $id_order)
     {
-        $order = Order::where('id_order', $id_order)->firstOrFail();
+        $order = Order::query()->where('id_order', $id_order)->firstOrFail();
 
         $order->status = 'Canceled';
         $order->save();
 
-        // (Opsional) Kalau pakai tabel jadwals, update juga status di sana:
-        $jadwal = Jadwal::where('id_order', $id_order)->first();
+        $jadwal = Jadwal::query()->where('id_order', $id_order)->first();
         if ($jadwal) {
             $jadwal->status = 'Canceled';
             $jadwal->save();
@@ -176,7 +165,7 @@ class OrderController extends Controller
         return redirect()->route('riwayat.index')->with('success', 'Order berhasil dibatalkan.');
     }
 
-    public function approve(Request $request, $id_order)
+    public function approve(Request $request, string $id_order)
     {
         DB::beginTransaction();
         try {
@@ -186,18 +175,15 @@ class OrderController extends Controller
                 return redirect()->route('orders.index')->with('error', 'Order ini sudah dijadwalkan.');
             }
 
-            // Update status order
             $order->status = 'Scheduled';
             $order->save();
 
-            // Hanya buat jadwal jika belum ada
-            $jadwal = Jadwal::where('id_order', $order->id_order)->first();
+            $jadwal = Jadwal::query()->where('id_order', $order->id_order)->first();
             if (! $jadwal) {
                 $totalDurasi = $order->orderDetails->sum('durasi_layanan');
                 $jamMulai    = Carbon::parse($order->jam_pengerjaan);
                 $jamSelesai  = $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i:s');
 
-                // Gabungkan semua nama petugas dari seluruh detail order, tidak duplikat
                 $namaPetugas = $order->orderDetails->flatMap->petugas->pluck('nama_petugas')->unique()->implode(', ');
 
                 Jadwal::create([
@@ -229,7 +215,7 @@ class OrderController extends Controller
         $now    = Carbon::now();
         $prefix = 'ORD-' . $now->format('ym');
 
-        $lastOrder = Order::where('id_order', 'like', $prefix . '%')
+        $lastOrder = Order::query()->where('id_order', 'like', $prefix . '%')
             ->orderBy('id_order', 'desc')
             ->first();
 
@@ -238,10 +224,8 @@ class OrderController extends Controller
         return $prefix . str_pad($sequence, 3, '0', STR_PAD_LEFT);
     }
 
-    public function updateLayanan(Request $request, $id_order)
+    public function updateLayanan(Request $request, string $id_order)
     {
-        // dd($request->all());
-
         $request->validate([
             'id_order_detail'    => 'required|array',
             'tanggal_pengerjaan' => 'required|date|after_or_equal:today',
@@ -249,7 +233,6 @@ class OrderController extends Controller
             'layanans'           => 'required|array',
             'subtotals'          => 'required|array',
             'durasi_layanan'     => 'required|array',
-            //'petugas'            => 'required|array',
             'diskon'             => 'nullable|numeric|min:0',
             'total_harga'        => 'required|numeric|min:0',
             'metode_pembayaran'  => 'required|in:DP,Lunas',
@@ -258,7 +241,6 @@ class OrderController extends Controller
 
         foreach ($request->layanans as $i => $id_layanan) {
             $petugasArr = $request->petugas[$i] ?? [];
-            // Jika array petugas kosong (tidak ada yang di-assign)
             if (empty(array_filter($petugasArr))) {
                 return redirect()->back()
                     ->withInput()
@@ -269,7 +251,6 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            // Update order utama
             $order = Order::findOrFail($id_order);
             $order->update([
                 'tanggal_pengerjaan' => $request->tanggal_pengerjaan,
@@ -280,8 +261,7 @@ class OrderController extends Controller
                 'tipe_pembayaran'    => $request->tipe_pembayaran,
             ]);
 
-            // Hapus order_detail yang sudah dihapus user di form
-            OrderDetail::where('id_order', $id_order)
+            OrderDetail::query()->where('id_order', $id_order)
                 ->whereNotIn('id_layanan_subkategori', $request->layanans)
                 ->delete();
 
@@ -292,15 +272,13 @@ class OrderController extends Controller
                 $petugasArr      = $request->petugas[$i] ?? [];
 
                 if ($id_order_detail) {
-                    // Detail sudah ada, update durasi, update petugas
-                    $detail = OrderDetail::find($id_order_detail);
+                    $detail = OrderDetail::query()->find($id_order_detail);
                     if ($detail) {
                         $detail->durasi_layanan = $durasi;
                         $detail->harga          = $subtotal;
                         $detail->save();
 
-                        // Update petugas
-                        OrderDetailPetugas::where('id_order_detail', $detail->id_order_detail)->delete();
+                        OrderDetailPetugas::query()->where('id_order_detail', $detail->id_order_detail)->delete();
                         foreach (array_filter($petugasArr) as $id_petugas) {
                             OrderDetailPetugas::create([
                                 'id_order_detail' => $detail->id_order_detail,
@@ -309,19 +287,16 @@ class OrderController extends Controller
                         }
                     }
                 } else {
-                    // CEK APAKAH SUDAH ADA detail dengan id_order & id_layanan_subkategori INI!
-                    $exists = OrderDetail::where('id_order', $id_order)
+                    $exists = OrderDetail::query()->where('id_order', $id_order)
                         ->where('id_layanan_subkategori', $id_layanan)
                         ->exists();
                     if (! $exists) {
-                        // Detail baru, create detail
                         $detail = OrderDetail::create([
                             'id_order'               => $id_order,
                             'id_layanan_subkategori' => $id_layanan,
                             'durasi_layanan'         => $durasi,
                             'harga'                  => $subtotal,
                         ]);
-                        // Insert petugas
                         foreach (array_filter($petugasArr) as $id_petugas) {
                             OrderDetailPetugas::create([
                                 'id_order_detail' => $detail->id_order_detail,
