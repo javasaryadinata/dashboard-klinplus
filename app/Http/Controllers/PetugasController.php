@@ -117,9 +117,6 @@ class PetugasController extends Controller
         }
     }
 
-    /**
-     * Generate unique Petugas ID in format PKYYMMNNN
-     */
     protected function generatePetugasId(): string
     {
         $now = Carbon::now();

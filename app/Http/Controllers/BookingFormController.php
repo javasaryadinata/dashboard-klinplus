@@ -31,9 +31,6 @@ class BookingFormController extends Controller
         }
     }
 
-    /**
-     * Generate unique Pelanggan ID in format CSYYMMNNN
-     */
     protected function generatePelangganId(): string
     {
         $now           = Carbon::now();
@@ -55,29 +52,6 @@ class BookingFormController extends Controller
         $sequence = $lastOrder ? (int) substr($lastOrder->id_order, -3) + 1 : 1;
         return $prefix . str_pad($sequence, 3, '0', STR_PAD_LEFT);
     }
-
-    // public function savePelanggan($request)
-    // {
-    //     $pelanggan = DB::table('pelanggan')
-    //         ->where('telp_pelanggan', $request->whatsapp)
-    //         ->first();
-
-    //     if (! $pelanggan) {
-    //         return DB::table('pelanggan')->insertGetId([
-    //             'nama_pelanggan' => $request->nama_lengkap,
-    //             'telp_pelanggan' => $request->whatsapp,
-    //             'email'          => $request->email,
-    //             'id_kota'        => $request->kota,
-    //             'alamat_lokasi'  => $request->alamat,
-    //             'lokasi_gmaps'   => $request->maps,
-    //             'catatan'        => $request->catatan,
-    //             'created_at'     => now(),
-    //             'updated_at'     => now(),
-    //         ]);
-    //     }
-
-    //     return $pelanggan->id_pelanggan;
-    // }
 
     public function checkPromo(Request $request)
     {
@@ -138,32 +112,11 @@ class BookingFormController extends Controller
             ]);
         }
 
-        // Check jika pelanggan sudah ada
-        // $pelanggan = DB::table('pelanggan')->where('telp_pelanggan', $request->whatsapp)->first();
-
-        // if (!$pelanggan) {
-        //     $idPelanggan = DB::table('pelanggan')->insertGetId([
-        //         'nama_pelanggan' => $request->nama_lengkap,
-        //         'telp_pelanggan' => $request->whatsapp,
-        //         'email'          => $request->email,
-        //         'id_kota'        => $request->kota,
-        //         'alamat_lokasi'  => $request->alamat,
-        //         'lokasi_gmaps'   => $request->maps,
-        //         'catatan'        => $request->catatan,
-        //         'created_at'     => now(),
-        //         'updated_at'     => now(),
-        //     ]);
-        // } else {
-        //     $idPelanggan = $pelanggan->id_pelanggan;
-        // }
-
-        // Hitung total harga
         $layananIds = $request->layanan;
         $totalHarga = DB::table('layanan_subkategori')
             ->whereIn('id', $layananIds)
             ->sum('harga');
 
-        // Cek promo
         $diskon    = 0;
         $kodePromo = $request->promo;
         if ($kodePromo) {
@@ -175,7 +128,6 @@ class BookingFormController extends Controller
             }
         }
 
-        // Simpan order
         $idOrder = $this->generateOrderId();
         $order   = Order::create([
             'id_order'           => $idOrder,
@@ -190,7 +142,6 @@ class BookingFormController extends Controller
             'catatan'            => $request->catatan,
         ]);
 
-        // Simpan detail layanan
         foreach ($layananIds as $idLayanan) {
             $harga = DB::table('layanan_subkategori')->where('id', $idLayanan)->value('harga');
 
@@ -203,17 +154,12 @@ class BookingFormController extends Controller
             ]);
         }
 
-        // $pelanggan = DB::table('pelanggan')->where('id_pelanggan', $idPelanggan)->first();
-
-        // $order = DB::table('orders')->where('id_order', $idOrder)->first();
-
         $detailLayanan = DB::table('order_detail')
             ->join('layanan_subkategori', 'order_detail.id_layanan_subkategori', '=', 'layanan_subkategori.id')
             ->select('layanan_subkategori.nama_subkategori', 'order_detail.harga')
             ->where('id_order', $idOrder)
             ->get();
 
-        // Kirim email invoice
         if (!empty($pelanggan->email)) {
             Mail::to($pelanggan->email)->send(new InvoiceBookingMail($pelanggan, $order, $detailLayanan));
         }

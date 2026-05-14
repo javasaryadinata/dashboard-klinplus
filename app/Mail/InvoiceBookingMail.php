@@ -9,7 +9,7 @@ use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 
-class InvoiceBookingMail extends Mailable
+class InvoiceBookingMail extends Mailable implements ShouldQueue
 {
     use Queueable, SerializesModels;
 
@@ -25,7 +25,8 @@ class InvoiceBookingMail extends Mailable
 
     public function build()
     {
-        return $this->view('emails.invoice');
+        return $this->subject('Invoice Booking Klinplus - ' . $this->order->id_order)
+                    ->view('emails.invoice');
     }
 
     /**
