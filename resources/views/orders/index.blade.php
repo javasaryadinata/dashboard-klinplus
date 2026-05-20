@@ -6,9 +6,23 @@
 
 @section('content')
 <div x-data="{ isModalOpen: false }">
-    <div class="d-flex justify-end mb-3">
-        <button @click="isModalOpen = true; setTimeout(isiAlamatOtomatis, 100)" class="bg-cyan hover:bg-[#27b9d9] text-white px-3 py-2 rounded-md text-sm font-normal transition-colors shadow-sm">
-            Tambah Order
+    <div class="flex flex-row md:flex-row justify-between items-end md:items-center gap-4 mb-2">
+
+        <div class="flex flex-row items-center gap-2 w-full md:max-w-xs z-20">
+            <form method="GET" action="{{ route('orders.index') }}" autocomplete="off" class="relative w-full" onsubmit="event.preventDefault();">
+                <div class="absolute inset-y-0 left-0 pl-3 flex text-gray-400 items-center pointer-events-none">
+                    <x-lucide-search class="h-4 w-4 stroke-current stroke-[1.5]" />
+                </div>
+                <input type="text" id="searchInput" name="search" placeholder="Cari" value="{{ request('search') }}"
+                    class="w-full h-8 bg-white border border-gray-200 pl-8 py-2 rounded-lg text-gray-600 text-sm focus:ring-1 focus:ring-gray-300 outline-none transition-all shadow-sm">
+                <button type="button" id="clearSearchBtn" class="absolute inset-y-0 right-0 m-1.5 px-0.5 rounded-sm flex items-center hover:bg-gray-200 text-gray-400 transition-colors {{ request('search') ? '' : 'hidden' }}">
+                    <x-lucide-x class="h-4 w-4 stroke-current stroke-[1.6]" />
+                </button>
+            </form>
+        </div>
+        <button @click="isModalOpen = true; setTimeout(isiAlamatOtomatis, 100)" class="bg-sky-400 hover:bg-sky-500 text-white px-3 py-2 rounded-lg text-xs font-medium transition-colors shadow-sm flex items-center gap-1 whitespace-nowrap w-full md:w-auto justify-start">
+            <x-lucide-file-plus-corner class="h-4 w-4 stroke-current stroke-[2]" />
+            Tambah order
         </button>
     </div>
 
@@ -19,97 +33,146 @@
     @endif
 
     <div class="overflow-x-auto w-full">
-        <div class="table-wrapper min-w-[800px]">
+        <div class="table-wrapper min-w-[800px] border border-gray-200 rounded-lg">
             <table class="order-table w-full text-left">
                 <thead>
                     <tr>
                         <th>No</th>
-                        <th>ID Order</th>
-                        <th>Nama Pelanggan</th>
                         <th>
-                            <a href="{{ route('orders.index', ['sort' => ($sort === 'desc' ? 'asc' : 'desc')]) }}" class="flex items-center gap-1">
-                                @if($sort === 'desc')
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 2xl:h-5 lucide lucide-arrow-down-wide-narrow-icon lucide-arrow-down-wide-narrow"><path d="m3 16 4 4 4-4"/><path d="M7 20V4"/><path d="M11 4h10"/><path d="M11 8h7"/><path d="M11 12h4"/></svg>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'id_order', 'direction' => request('sort') == 'id_order' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-2 hover:text-gray-800 transition-colors">
+                                Order
+                                @if (request('sort') == 'id_order')
+                                    @if (request('direction') == 'asc')
+                                        <x-lucide-chevron-up class="w-3 h-3 stroke-current stroke-[3]" />
+                                    @else
+                                        <x-lucide-chevron-down class="w-3 h-3 stroke-current stroke-[3]" />
+                                    @endif
                                 @else
-                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 2xl:h-4 lucide lucide-move-up-icon lucide-move-up"><path d="M8 6L12 2L16 6"/><path d="M12 2V22"/></svg>
+                                    <x-lucide-chevrons-up-down class="w-3 h-3 stroke-current stroke-[3]" />
                                 @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'pelanggan', 'direction' => request('sort') == 'pelanggan' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-2 hover:text-gray-800 transition-colors">
+                                Pelanggan
+                                @if (request('sort') == 'pelanggan')
+                                    @if (request('direction') == 'asc')
+                                        <x-lucide-chevron-up class="w-3 h-3 stroke-current stroke-[3]" />
+                                    @else
+                                        <x-lucide-chevron-down class="w-3 h-3 stroke-current stroke-[3]" />                                     
+                                    @endif
+                                @else
+                                    <x-lucide-chevrons-up-down class="w-3 h-3 stroke-current stroke-[3]" />
+                                @endif
+                            </a>
+                        </th>
+                        <th>
+                            <a href="{{ request()->fullUrlWithQuery(['sort' => 'tanggal_pengerjaan', 'direction' => request('sort') == 'tanggal_pengerjaan' && request('direction') == 'asc' ? 'desc' : 'asc']) }}" class="flex items-center gap-2 hover:text-gray-800 transition-colors">
                                 Tanggal Pengerjaan
+                                @if (request('sort') == 'tanggal_pengerjaan')
+                                    @if (request('direction') == 'asc')
+                                        <x-lucide-chevron-up class="w-3 h-3 stroke-current stroke-[3]" />
+                                    @else
+                                        <x-lucide-chevron-down class="w-3 h-3 stroke-current stroke-[3]" />                                     
+                                    @endif
+                                @else
+                                    <x-lucide-chevrons-up-down class="w-3 h-3 stroke-current stroke-[3]" />
+                                @endif
                             </a>
                         </th>
                         <th>Waktu</th>
                         <th>Alamat</th>
-                        <th>Total Harga</th>
+                        <th>Kota</th>
                         <th>Status Order</th>
-                        <th>Status Bayar</th>
-                        <th>Aksi</th>
+                        <th></th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-gray-200 divide-y">
                     @forelse($orders as $order)
                     @php
                         $totalDurasi = $order->orderDetails->sum('durasi_layanan');
                         $jamMulai = \Carbon\Carbon::createFromFormat('H:i:s', $order->jam_pengerjaan);
                         $jamSelesai = $totalDurasi ? $jamMulai->copy()->addMinutes($totalDurasi)->format('H:i') . ' WIB' : '-';
                     @endphp
-                    <tr class="border-b border-gray-100 hover:bg-gray-50/50">
+                    <tr class="hover:bg-gray-50/50">
                         <td>{{ $loop->iteration }}</td>
                         <td>{{ $order->id_order }}</td>
                         <td>{{ $order->pelanggan->nama_pelanggan ?? '-' }}</td>
                         <td>{{ $order->tanggal_pengerjaan ? \Carbon\Carbon::parse($order->tanggal_pengerjaan)->format('d-m-Y') : '-' }}</td>
                         <td>{{ $order->jam_pengerjaan ? \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') : '-' }}</td>
                         <td>{{ $order->alamat_lokasi ?? '-' }}</td>
-                        <td>
-                            Rp {{ number_format($order->total_harga, 0, ',', '.') }}
-                        </td>
-                        <td>
-                            <span class="px-4 py-1 rounded-full text-xs font-medium text-white"
-                                style="background:{{ $order->status === 'Request' ? '#0096FF' : ($order->status === 'Scheduled' ? '#B0DB9C' : ($order->status === 'Selesai' ? '#3FD6CB' : '#ddd')) }};">
-                                {{ ucfirst($order->status) }}
-                            </span>
-                        </td>
+                        <td>{{ $order->pelanggan->kota->nama_kota ?? '-' }}</td>
                         <td>
                             @php
-                                $metode = $order->metode_pembayaran ? ucfirst($order->metode_pembayaran) : '-';
-                                $tipe = $order->tipe_pembayaran ? ucfirst($order->tipe_pembayaran) : '-';
+                                $badgeColor = match($order->status) {
+                                    'Request' => 'badge-secondary',
+                                    'Scheduled' => 'badge-warning',
+                                    'Selesai' => 'badge-success',
+                                    'Canceled'  => 'badge-error',
+                                    default     => 'badge-ghost',
+                                };
                             @endphp
-                            {{ $metode }} / {{ $tipe }}
+                            <div class="badge badge-soft {{ $badgeColor }} text-xs px-4">
+                                {{ ucfirst($order->status) }}
+                            </div>
                         </td>
-                        <td>
-                            <div class="flex gap-1">
-                                <a href="{{ route('orders.detail', $order->id_order) }}" class="p-1.5 text-cyan hover:bg-cyan/10 rounded-md transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <td class="relative text-center" x-data="{ openAction: false }">
+                            <button @click="openAction = !openAction" class="p-1 text-gray-500 hover:bg-gray-100 rounded-md transition-colors focus:outline-none" title="Actions">
+                                <x-lucide-ellipsis class="w-4 h-4 stroke-current stroke-[2]" />
+                            </button>  
+                            
+                            <div x-show="openAction" @click.away="openAction = false" x-transition.opacity.duration.200ms style="display: none;"
+                                class="absolute right-10 top-2 w-44 bg-white border border-gray-200 p-1 rounded-lg shadow-lg z-50 text-left overflow-hidden">
+                                
+                                <a href="{{ route('orders.detail', $order->id_order) }}" class="flex items-center gap-2 px-2 py-1.5 rounded-md text-xs text-gray-600 font-medium hover:bg-gray-100 transition-colors">
+                                    <x-lucide-square-arrow-out-up-right class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                    Lihat Detail Order
                                 </a>
+
                                 @if($order->pelanggan && $order->pelanggan->telp_pelanggan)
                                     @php
                                         $waNumber = preg_replace('/[^0-9]/', '', $order->pelanggan->telp_pelanggan);
                                         if (substr($waNumber, 0, 1) == '0') $waNumber = '62' . substr($waNumber, 1);
                                     @endphp
-                                    <a href="https://wa.me/{{ $waNumber }}" target="_blank" class="p-1.5 text-green-500 hover:bg-green-50 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"/></svg>
+                                    <a href="https://wa.me/{{ $waNumber }}" target="_blank" class="flex items-center px-2 py-1.5 gap-2 rounded-md text-xs text-gray-600 font-medium hover:bg-gray-100 transition-colors">
+                                        <x-lucide-message-circle-more class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                        Hubungi Pelanggan
                                     </a>
                                 @else
-                                    <span class="text-gray-400 text-xs">Tidak ada WA</span>
+                                    <div class="flex items-center px-2 py-1.5 gap-2rounded-md text-xs text-gray-600 font-medium cursor-not-allowed" title="Nomor WA tidak tersedia">
+                                        <x-lucide-message-circle-x class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                        Tidak ada WA
+                                    </div>
                                 @endif
-                                <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="p-1.5 text-indigo-500 hover:bg-indigo-50 rounded-md transition-colors">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+
+                                <a href="{{ route('orders.invoicePdf', $order->id_order) }}" target="_blank" class="flex items-center px-2 py-1.5 gap-2 rounded-md text-xs text-gray-600 font-medium hover:bg-gray-100 transition-colors">
+                                    <x-lucide-file-down class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                    Download Invoice
                                 </a>
-                                <form action="{{ route('orders.approve', $order->id_order) }}" method="POST">
+
+                                <div class="h-px bg-gray-200 my-1 mx-1"></div>
+                                <form action="{{ route('orders.approve', $order->id_order) }}" method="POST" class="w-full m-0">
                                     @csrf
-                                    <button type="submit" class="p-1.5 text-green-500 hover:bg-green-50 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    <button type="submit" class="w-full flex items-center px-2 py-1.5 gap-2 rounded-md text-xs text-gray-600 font-medium hover:bg-gray-100 transition-colors text-left">
+                                        <x-lucide-check class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                        Jadwalkan Order
                                     </button>
                                 </form>
-                                <form action="{{ route('orders.cancel', $order->id_order) }}" method="POST" onsubmit="return confirm('Batalkan order ini?')">
+
+                                <form action="{{ route('orders.cancel', $order->id_order) }}" method="POST" class="w-full m-0" onsubmit="return confirm('Batalkan order ini?')">
                                     @csrf
-                                    <button type="submit" class="p-1.5 text-red-500 hover:bg-red-50 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                                    <button type="submit" class="w-full flex items-center px-2 py-1.5 gap-2 rounded-md text-xs text-gray-600 font-medium hover:bg-gray-100 transition-colors text-left">
+                                        <x-lucide-x class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                        Batalkan Order
                                     </button>
                                 </form>
-                                <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" onsubmit="return confirm('Apakah Anda yakin ingin menghapus order ini?')">
+
+                                <form action="{{ route('orders.destroy', $order->id_order) }}" method="POST" class="w-full m-0" onsubmit="return confirm('Apakah Anda yakin ingin menghapus permanen order ini?')">
                                     @csrf
                                     @method('DELETE')
-                                    <button type="submit" class="p-1.5 text-gray-400 hover:bg-gray-100 hover:text-red-500 rounded-md transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                                    <button type="submit" class="w-full flex items-center px-2 py-1.5 gap-2 rounded-md text-xs text-red-500 hover:bg-red-50 transition-colors text-left">
+                                        <x-lucide-trash-2 class="w-4 h-4 stroke-current stroke-[1.6]" />
+                                        Hapus
                                     </button>
                                 </form>
                             </div>
@@ -230,6 +293,64 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // # LIVE SEARCH AJAX
+    const searchInput = document.getElementById('searchInput');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+    const tableWrapper = document.querySelector('.table-wrapper');
+    let debounceTimer;
+
+    if (searchInput && tableWrapper) {
+        if (clearSearchBtn) {
+            clearSearchBtn.addEventListener('click', function() {
+                searchInput.value = ''; // Kosongkan input
+                clearSearchBtn.classList.add('hidden'); // Sembunyikan tombol X
+                searchInput.dispatchEvent(new Event('input')); // Trigger AJAX pencarian ulang otomatis
+            });
+        }
+
+        searchInput.addEventListener('input', function() {
+            
+            if (this.value.length > 0) {
+                clearSearchBtn.classList.remove('hidden');
+            } else {
+                clearSearchBtn.classList.add('hidden');
+            }
+
+            clearTimeout(debounceTimer);
+            
+            debounceTimer = setTimeout(() => {
+                tableWrapper.style.transition = 'opacity 0.3s';
+                tableWrapper.style.opacity = '0.5';
+
+                const url = new URL(window.location.href);
+                if (this.value) {
+                    url.searchParams.set('search', this.value);
+                } else {
+                    url.searchParams.delete('search');
+                }
+
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newTableContent = doc.querySelector('.table-wrapper').innerHTML;
+                    
+                    tableWrapper.innerHTML = newTableContent;
+                    tableWrapper.style.opacity = '1';
+                    window.history.pushState({}, '', url);
+                })
+                .catch(err => {
+                    console.error('Gagal mengambil data pencarian:', err);
+                    tableWrapper.style.opacity = '1';
+                });
+            }, 500); 
+        });
+    }
+
+    // # ALERT AUTO HIDE
     const alert = document.getElementById('order-success-alert');
     if (alert) {
         setTimeout(() => {
@@ -239,6 +360,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }, 3000);
     }
 
+    // # AUTO-FILL ALAMAT PELANGGAN
     const pelangganSelect = document.getElementById('id_pelanggan');
     const alamatInput = document.getElementById('input_alamat_lokasi');
     const gmapsInput = document.getElementById('input_lokasi_gmaps');
@@ -252,6 +374,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     pelangganSelect.addEventListener('change', isiAlamatOtomatis);
 
+    // # TAMBAH & HAPUS LAYANAN
     const layananContainer = document.getElementById('layanan-container');
     const btnAddLayanan = document.querySelector('.btn-add-layanan');
 
@@ -281,6 +404,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // # KALKULASI DISKON & TOTAL HARGA
     const diskonList = {
         {!! $promos->map(function($promo) {
             return '"'.strtoupper($promo->kode).'": '.(int)$promo->diskon;
@@ -291,6 +415,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const totalHargaInput = document.getElementById('input_total_harga');
     let diskonAktif = 0;
     let diskonMsg = document.getElementById('diskon-msg');
+    
     if (!diskonMsg) {
         diskonMsg = document.createElement('div');
         diskonMsg.id = 'diskon-msg';
