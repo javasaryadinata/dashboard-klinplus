@@ -17,18 +17,51 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
-        $sort = $request->query('sort', 'desc');
-        $orders     = Order::with(['pelanggan', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'Request')->orderBy('tanggal_pengerjaan', $sort)->get();
+        $search    = $request->query('search');
+        $sort      = $request->query('sort', 'default');
+        $direction = $request->query('direction', 'desc');
+
+        $ordersQuery = Order::query()->with(['pelanggan.kota', 'orderDetails.layananSubkategori.rootKategori'])->where('status', 'Request');
+
+        if ($search) {
+            $ordersQuery->where(function ($q) use ($search) {
+                $q->where('id_order', 'like', "%$search%")
+                    ->orWhereHas('pelanggan', function ($sub) use ($search) {
+                        $sub->where('nama_pelanggan', 'like', "%$search%");
+                    });
+            });
+        }
+
+        switch ($sort) {
+            case 'id_order':
+                $ordersQuery->orderBy('id_order', $direction);
+                break;
+            case 'pelanggan':
+                $ordersQuery->join('pelanggan', 'orders.id_pelanggan', '=', 'pelanggan.id_pelanggan')
+                    ->orderBy('pelanggan.nama_pelanggan', $direction)
+                    ->select('orders.*');
+                break;
+            case 'tanggal_pengerjaan':
+                $ordersQuery->orderBy('tanggal_pengerjaan', $direction)->orderBy('jam_pengerjaan', $direction);
+                break;
+            case 'default':
+            default:
+                $ordersQuery->orderBy('created_at', 'desc');
+                break;
+        }
+
+        $orders     = $ordersQuery->get();
         $pelanggans = Pelanggan::all();
         $promos     = DB::table('promo')->get();
-        return view('orders.index', compact('orders', 'pelanggans', 'promos', 'sort'));
+
+        return view('orders.index', compact('orders', 'pelanggans', 'promos', 'sort', 'direction', 'search'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'id_pelanggan'          => 'required|exists:pelanggan,id_pelanggan',
-            'alamat_lokasi'         => 'required|string|max:255',
+            'alamat_lokasi'         => 'required_with:id_pelanggan|nullable|string|max:255',
             'lokasi_gmaps'          => 'nullable|string|max:255',
             'catatan'               => 'nullable|string|max:255',
             'tanggal_pengerjaan'    => 'required|date|after_or_equal:today',
@@ -37,6 +70,10 @@ class OrderController extends Controller
             'kode'                  => 'nullable|string|max:20',
             'layanan_subkategori'   => 'required|array|min:1',
             'layanan_subkategori.*' => 'exists:layanan_subkategori,id',
+        ], [
+            'layanan_subkategori.required' => 'Minimal satu layanan harus ditambahkan.',
+            'id_pelanggan.exists'          => 'Pelanggan yang dipilih tidak valid atau belum terdaftar.',
+            'id_pelanggan.required'        => 'Pelanggan belum di pilih.',
         ]);
 
         $diskon = 0;
