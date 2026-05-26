@@ -61,7 +61,7 @@ class OrderController extends Controller
     {
         $validated = $request->validate([
             'id_pelanggan'          => 'required|exists:pelanggan,id_pelanggan',
-            'alamat_lokasi'         => 'required|string|max:255',
+            'alamat_lokasi'         => 'required_with:id_pelanggan|nullable|string|max:255',
             'lokasi_gmaps'          => 'nullable|string|max:255',
             'catatan'               => 'nullable|string|max:255',
             'tanggal_pengerjaan'    => 'required|date|after_or_equal:today',
@@ -70,6 +70,10 @@ class OrderController extends Controller
             'kode'                  => 'nullable|string|max:20',
             'layanan_subkategori'   => 'required|array|min:1',
             'layanan_subkategori.*' => 'exists:layanan_subkategori,id',
+        ], [
+            'layanan_subkategori.required' => 'Minimal satu layanan harus ditambahkan.',
+            'id_pelanggan.exists'          => 'Pelanggan yang dipilih tidak valid atau belum terdaftar.',
+            'id_pelanggan.required'        => 'Pelanggan belum di pilih.',
         ]);
 
         $diskon = 0;

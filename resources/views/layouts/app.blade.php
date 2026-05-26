@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -30,7 +31,7 @@
                     <ul class="sidebar-menu">
                         <li class="sidebar-menu-item">
                             <a href="{{ url('/') }}" class="{{ request()->is('/') ? 'active' : '' }}">
-                                <x-lucide-layout-grid class="h-4 w-4 stroke-current stroke-[1.3]" />
+                                <x-lucide-layout-grid class="h-4 w-4 stroke-current stroke-[1.8]" />
                                 <span>Dashboard</span>
                             </a>
                         </li>
@@ -42,25 +43,25 @@
                     <ul class="sidebar-menu">
                         <li class="sidebar-menu-item">
                             <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') && request('ref') !== 'pembayaran' ? 'active' : ''}}">
-                                <x-lucide-file-text class="h-4 w-4 stroke-current stroke-[1.2]" />
+                                <x-lucide-file-text class="lucide-icon h-4 w-4 stroke-current stroke-[1.8]" />
                                 <span>Orders</span>    
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
                             <a href="{{ route('jadwal.index') }}" class="{{ request()->routeIs('jadwal.*') ? 'active' : '' }}">
-                                <x-lucide-calendar-days class="h-4 w-4 stroke-current stroke-[1.2]" />
+                                <x-lucide-calendar-days class="h-4 w-4 stroke-current stroke-[1.8]" />
                                 <span>Jadwal</span>    
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
                             <a href="{{ route('pembayaran.index') }}" class="{{ request()->routeIs('pembayaran.*') || request('ref') === 'pembayaran' ? 'active' : ''}}">
-                                <x-lucide-credit-card class="h-4 w-4 stroke-current stroke-[1.2]" />
+                                <x-lucide-credit-card class="h-4 w-4 stroke-current stroke-[2]" />
                                 <span>Pembayaran</span>
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
                             <a href="{{ route('riwayat.index') }}" class="{{ request()->routeIs('riwayat.*') ? 'active' : '' }}">
-                                <x-lucide-history class="h-4 w-4 stroke-current stroke-[1.3]" />
+                                <x-lucide-history class="h-4 w-4 stroke-current stroke-[2]" />
                                 <span>Riwayat</span>
                             </a>
                         </li>
@@ -72,30 +73,23 @@
                     <ul class="sidebar-menu">
                         <li class="sidebar-menu-item">
                             <a href="{{ route('pelanggan.index') }}" class="{{ request()->routeIs('pelanggan.*') ? 'active' : '' }}">
-                                <x-lucide-user class="h-4 w-4 stroke-current stroke-[1.3]" />
+                                <x-lucide-user class="h-4 w-4 stroke-current stroke-[2]" />
                                 <span>Pelanggan</span>
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
                             <a href="{{ route('petugas.index') }}" class="{{ request()->routeIs('petugas.*') ? 'active' : '' }}">
-                                <x-lucide-users class="h-4 w-4 stroke-current stroke-[1.3]" />
+                                <x-lucide-users class="h-4 w-4 stroke-current stroke-[2]" />
                                 <span>Petugas</span>
                             </a>
                         </li>
                         <li class="sidebar-menu-item">
                             <a href="{{ route('layanan.index') }}" class="{{ request()->routeIs('layanan.*') ? 'active' : '' }}">
-                                <x-lucide-package-2 class="h-4 w-4 stroke-current stroke-[1.2]" />
+                                <x-lucide-package-2 class="h-4 w-4 stroke-current stroke-[1.8]" />
                                 <span>Layanan</span>
                             </a>
                         </li>
                     </ul>
-                </div>
-                
-                <div class="mt-8">
-                    <a href="#" class="logout-link">
-                        <x-lucide-log-out class="h-4 w-4 stroke-current stroke-[1.3]" />
-                        <span>Logout</span>
-                    </a>
                 </div>
             </nav>
         </aside>
@@ -123,6 +117,8 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-validate/1.19.5/jquery.validate.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/id.js"></script>
     @stack('scripts')
 </body>
 </html>
