@@ -43,7 +43,7 @@
                     <ul class="sidebar-menu">
                         <li class="sidebar-menu-item">
                             <a href="{{ route('orders.index') }}" class="{{ request()->routeIs('orders.*') && request('ref') !== 'pembayaran' ? 'active' : ''}}">
-                                <x-lucide-file-text class="lucide-icon h-4 w-4 stroke-current stroke-[1.8]" />
+                                <x-lucide-file-text class="h-4 w-4 stroke-current stroke-[1.8]" />
                                 <span>Orders</span>    
                             </a>
                         </li>
@@ -95,7 +95,7 @@
         </aside>
 
         <main class="main-content flex-1 flex flex-col min-h-screen bg-slate-100">
-            <div class="bg-white rounded-br-xl px-4 py-3 shadow-sm border border-gray-100 overflow-hidden">
+            <div class="bg-white rounded-br-xl px-4 py-3 text-gray-600 shadow-sm border border-gray-100 overflow-hidden">
                 @yield('title-content')
             </div>
 

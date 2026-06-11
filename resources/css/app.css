@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @plugin "daisyui" {
-  themes: fantasy --default;
+  themes: emerald --default;
   include: badge;
 }
 
@@ -49,14 +49,14 @@ h4 {
 
 .main-content {
   flex: 1;
-  margin-left: 200px;
+  margin-left: 220px;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
 .sidebar {
-  width: 200px;
+  width: 220px;
   background-color: white;
   box-shadow: 1px 0 4px rgba(0, 0, 0, 0.1);
   position: fixed;
@@ -96,12 +96,12 @@ h4 {
   font-weight: 500;
   display: flex;
   align-items: center;
-  padding: 12px 24px;
+  padding: 12px 20px;
   text-decoration: none;
-  border-radius: 8px;
   transition: all 0.3s ease;
   gap: 10px;
   line-height: 1;
+  border-radius: var(--radius-xl);
 }
 
 .sidebar-menu-item a:hover {
@@ -154,7 +154,7 @@ h4 {
 .pembayaran-table th,
 .riwayat-table th {
   background-color: var(--color-gray-100);
-  color: var(--color-gray-600);
+  color: var(--color-gray-700);
   border-bottom: 1px solid var(--color-gray-200);
   font-size: 12px;
   font-weight: 600;
@@ -203,19 +203,7 @@ h4 {
 /* UI COMPONENTS */
 .layanan-card {
   cursor: pointer;
-  transition: all 0.2s ease-in-out;
-  border: 2px solid transparent;
   background-color: white;
-}
-.layanan-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  border-color: #0d6efd;
-}
-.layanan-card.selected {
-  border-color: #0d6efd;
-  background-color: #e6f2ff;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
 }
 
 /* Custom Flatpickr Style */
