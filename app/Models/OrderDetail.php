@@ -15,6 +15,7 @@ class OrderDetail extends Model
         'id_layanan_subkategori',
         'harga',
         'id_petugas',
+        'durasi_layanan'
     ];
 
     public function order()
@@ -24,7 +25,7 @@ class OrderDetail extends Model
 
     public function layananSubkategori()
     {
-        return $this->belongsTo(LayananSubkategori::class, 'id_layanan_subkategori', 'id');
+        return $this->belongsTo(LayananSubKategori::class, 'id_layanan_subkategori', 'id');
     }
 
     public function petugas()

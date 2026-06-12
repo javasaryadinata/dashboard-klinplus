@@ -77,9 +77,64 @@
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
 
                 <div class="col-span-2 space-y-3">
-                    {{-- Box Daftar Layanan --}}
+
+                    {{-- Box Utama --}}
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div class="p-4 flex justify-between items-center bg-gray-50/30">
+
+                        {{-- Informasi Pelanggan --}}
+                        <div class="p-4 relative mb-4">
+                            <div class="flex items-center justify-between gap-2 mb-2 relative z-10">
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-lg font-bold text-gray-700 m-0">Informasi Pelanggan</h4>
+                                </div>
+
+                                @if ($order->pelanggan && $order->pelanggan->telp_pelanggan)
+                                    @php
+                                        $waNumber = preg_replace('/[^0-9]/', '', $order->pelanggan->telp_pelanggan);
+                                        if (substr($waNumber, 0, 1) == '0') {
+                                            $waNumber = '62' . substr($waNumber, 1);
+                                        }
+                                    @endphp
+                                    <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener noreferrer"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] hover:bg-[#1ebd5a] text-white text-sm font-medium rounded-lg transition-colors shadow-sm outline-none">
+                                        <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24"
+                                            xmlns="http://www.w3.org/2000/svg">
+                                            <path
+                                                d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.405-.883-.733-1.48-1.64-1.653-1.938-.173-.298-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
+                                        </svg>
+                                        Chat Pelanggan
+                                    </a>
+                                @else
+                                    <span class="text-xs text-gray-400 font-medium italic">Nomor WA Tidak Tersedia</span>
+                                @endif
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-8 gap-y-4 relative z-10 pt-2">
+                                <div class="flex flex-col gap-3">
+                                    <div class="flex items-start gap-2">
+                                        <span class="w-32 text-sm font-semibold text-gray-700 shrink-0">Nama Pelanggan</span>
+                                        <span class="text-sm font-normal text-gray-600">{{ $order->pelanggan->nama_pelanggan }}</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="w-32 text-sm font-semibold text-gray-700 shrink-0">Email</span>
+                                        <span class="text-sm font-normal text-gray-600 break-all">{{ $order->pelanggan->email ?? '-' }}</span>
+                                    </div>
+                                </div>
+                                <div class="flex flex-col gap-3">
+                                    <div class="flex items-start gap-2">
+                                        <span class="w-16 text-sm font-semibold text-gray-700 shrink-0">Alamat</span>
+                                        <span class="text-sm font-normal text-gray-600 leading-relaxed flex-1">{{ $order->alamat_lokasi ?? '-' }}</span>
+                                    </div>
+                                    <div class="flex items-start gap-2">
+                                        <span class="w-16 text-sm font-semibold text-gray-700 shrink-0">Kota</span>
+                                        <span class="text-sm font-normal text-gray-600 flex-1">{{ $order->pelanggan->kota->nama_kota ?? '-' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {{-- Daftar Layanan --}}
+                        <div class="px-4 py-2 flex justify-between items-center bg-gray-50/30">
                             <div class="flex items-center gap-2">
                                 <h4 class="text-lg font-bold text-gray-700 m-0">Daftar Layanan</h4>
                             </div>
@@ -124,8 +179,8 @@
                                             </td>
                                             <td>
                                                 <div class="flex items-center gap-1.5">
-                                                    <input type="number" name="durasi_layanan[]" min="5" step="5"
-                                                        value="{{ $detail->durasi_layanan ?? 60 }}"
+                                                    <input type="number" name="durasi_layanan[]" min="5"
+                                                        step="5" value="{{ $detail->durasi_layanan ?? 60 }}"
                                                         class="durasi-input w-14 border border-gray-200 bg-gray-50 py-1.5 rounded-lg focus:border-1 focus:border-sky-400 outline-none transition-all text-center">
                                                     <span class="text-xs font-medium text-gray-600">Menit</span>
                                                 </div>
@@ -163,9 +218,90 @@
                         </div>
                     </div>
 
+                    {{-- Box Jadwal Pengerjaan --}}
+                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
+                        <div class="flex items-center gap-2 mb-6">
+                            <h4 class="text-lg font-bold text-gray-700 m-0">Jadwal Pengerjaan</h4>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-6">
+
+                            <div class="space-y-2 col-span-1">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Pengerjaan</label>
+                                    <div class="relative w-full max-w-[180px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <x-lucide-calendar class="h-4 w-4 stroke-[2]" />
+                                        </div>
+                                        <input type="text" name="tanggal_pengerjaan" id="input_tanggal_pengerjaan"
+                                            value="{{ $order->tanggal_pengerjaan }}" required placeholder="Pilih Tanggal..."
+                                            x-data x-init="flatpickr($el, {
+                                                dateFormat: 'Y-m-d',
+                                                altInput: true,
+                                                altFormat: 'd F Y',
+                                                locale: 'id',
+                                                minDate: 'today'
+                                            })"
+                                            class="w-full h-9 bg-gray-50 border border-gray-200 pl-9 pr-3 rounded-lg text-sm hover:bg-gray-100 focus:border-sky-400 focus:border-1 outline-none transition-all cursor-pointer text-gray-700">
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Waktu Mulai</label>
+                                    <div class="relative w-full max-w-[180px]">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                            <x-lucide-clock class="h-4 w-4" />
+                                        </div>
+                                        <input type="text" name="jam_pengerjaan" id="input_jam_pengerjaan"
+                                            value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}"
+                                            required placeholder="Pilih Jam..." x-data x-init="flatpickr($el, {
+                                                enableTime: true,
+                                                noCalendar: true,
+                                                dateFormat: 'H:i',
+                                                time_24hr: true
+                                            })"
+                                            class="w-full h-9 bg-gray-50 border border-gray-200 pl-9 pr-3 rounded-lg text-sm hover:bg-gray-100 focus:border-sky-400 focus:ring-1 focus:ring-sky-400 outline-none transition-all cursor-pointer text-gray-700">
+                                    </div>
+                                </div>
+
+                                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-4 space-y-2 w-full">
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-yellow-500 font-medium">Estimasi Durasi</span>
+                                        <span class="font-semibold text-yellow-500"><input type="text" id="estimasi-durasi"
+                                                class="bg-transparent w-24 text-right outline-none cursor-default"
+                                                value="0" readonly></span>
+                                    </div>
+                                    <div class="flex justify-between text-sm">
+                                        <span class="text-yellow-500 font-medium">Estimasi Selesai</span>
+                                        <span class="font-semibold text-yellow-500"><input type="text" id="jam-selesai"
+                                                class="bg-transparent w-24 text-right outline-none cursor-default"
+                                                value="" readonly></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-span-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-sm font-semibold text-gray-700">Cek Ketersediaan & Pilih Cepat</span>
+                                </div>
+                                <div id="time-slots-container" class="grid grid-cols-4 gap-2 p-2 bg-gray-50/50 rounded-lg border border-gray-100">
+                                    <div class="col-span-full text-center text-xs text-gray-400 py-4 flex flex-col items-center gap-2">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 animate-spin text-sky-400"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                                        Memuat jadwal...
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="space-y-3">
+
                     {{-- Box Ringkasan Pembayaran --}}
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <div class="flex items-center gap-2 mb-5">
+                        <div class="flex items-center gap-2 mb-4">
                             <h4 class="text-lg font-bold text-gray-700 m-0">Ringkasan Pembayaran</h4>
                         </div>
 
@@ -175,42 +311,38 @@
                             $diskonInput = old('diskon', $order->diskon ?? 0);
                         @endphp
 
-                        <div class="grid grid-cols-2 gap-8">
-                            <div class="space-y-4">
+                        <div class="flex flex-col gap-4">
 
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Status Pembayaran</label>
+                            <div class="flex gap-3">
+                                <div class="w-full">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Status</label>
                                     <div x-data="{
                                         open: false,
                                         value: '{{ $order->metode_pembayaran }}',
-                                        get label() { return this.value === 'DP' ? 'DP (Down Payment)' : 'Lunas'; }
-                                    }" @click.away="open = false" class="relative w-full max-w-xs">
-
-                                        <input type="hidden" name="metode_pembayaran" :value="value">
+                                        get label() { return this.value === 'DP' ? 'DP' : 'Lunas'; }
+                                    }" @click.away="open = false" class="relative w-full">
+                                    
+                                        <input type="hidden" name="metode-pembayaran" :value="value">
 
                                         <div @click="open = !open"
                                             class="w-full h-9 flex items-center justify-between border bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer transition-all min-w-0"
                                             :class="open ? 'border-sky-400 border-1' : 'border-gray-200 hover:bg-gray-100'">
-                                            <span x-text="label" class="text-gray-700 truncate font-normal"></span>
-                                            <x-lucide-chevron-down
-                                                class="w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0"
-                                                x-bind:class="open ? 'rotate-180' : ''" />
+                                            <span x-text="label" class="text-gray-600 truncate font-normal"></span>
+                                            <x-lucide-chevron-down class="w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0" x-bind:class="open ? 'rotate-180' : ''" />
                                         </div>
-
+                                        
                                         <div x-show="open" x-transition.opacity.duration.200ms style="display: none;"
                                             class="absolute left-0 top-full z-[60] w-full p-1.5 shadow-xl bg-white border border-gray-100 rounded-xl mt-1 overflow-hidden">
                                             <ul class="flex flex-col gap-1">
                                                 <li>
-                                                    <a href="#" @click.prevent="value = 'DP'; open = false"
-                                                        class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="value === 'DP' ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                    <a href="#" @click.prevent="value = 'DP'; open = false" class="block px-3 py-2 rounded-lg text-sm transition-colors"
+                                                        :class="value === 'DP' ? 'bg-sky-100 text-gray-700 font-semibold' : 'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         DP (Down Payment)
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" @click.prevent="value = 'Lunas'; open = false"
-                                                        class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="value === 'Lunas' ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                    <a href="#" @click.prevent="value = 'Lunas'; open = false" class="block px-3 py-2 rounded-lg text-sm transition-colors"
+                                                        :class="value === 'Lunas' ? 'bg-sky-100 text-gray-700 font-semibold' : 'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         Lunas
                                                     </a>
                                                 </li>
@@ -219,38 +351,31 @@
                                     </div>
                                 </div>
 
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Tipe Pembayaran</label>
-                                    <div x-data="{
-                                        open: false,
-                                        value: '{{ $order->tipe_pembayaran }}'
-                                    }" @click.away="open = false" class="relative w-full max-w-xs">
+                                <div class="w-full">
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">Metode</label>
+                                    <div x-data="{ open: false, value: '{{ $order->tipe_pembayaran }}' }" @click.away="open = false" class="relative w-full">
 
                                         <input type="hidden" name="tipe_pembayaran" :value="value">
 
                                         <div @click="open = !open"
                                             class="w-full h-9 flex items-center justify-between border bg-gray-50 px-3 py-2 rounded-lg text-sm cursor-pointer transition-all min-w-0"
-                                            :class="open ? 'border-sky-400 border-1' : 'border-gray-200 hover:bg-gray-100'">
+                                            :class="open ? 'border-sky-400 border-2' : 'border-gray-200 hover:bg-gray-100'">
                                             <span x-text="value" class="text-gray-700 truncate font-normal"></span>
-                                            <x-lucide-chevron-down
-                                                class="w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0"
-                                                x-bind:class="open ? 'rotate-180' : ''" />
+                                            <x-lucide-chevron-down class="w-4 h-4 text-gray-400 transition-transform duration-200 shrink-0" x-bind:class="open ? 'rotate-180' : ''" />
                                         </div>
 
                                         <div x-show="open" x-transition.opacity.duration.200ms style="display: none;"
                                             class="absolute left-0 top-full z-[60] w-full p-1.5 shadow-xl bg-white border border-gray-100 rounded-xl mt-1 overflow-hidden">
                                             <ul class="flex flex-col gap-1">
                                                 <li>
-                                                    <a href="#" @click.prevent="value = 'Transfer'; open = false"
-                                                        class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="value === 'Transfer' ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                    <a href="#" @click.prevent="value = 'Transfer'; open = false" class="block px-3 py-2 rounded-lg text-sm transition-colors"
+                                                        :class="value === 'Transfer' ? 'bg-sky-100 text-gray-700 font-semibold' : 'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         Transfer
                                                     </a>
                                                 </li>
                                                 <li>
-                                                    <a href="#" @click.prevent="value = 'Cash'; open = false"
-                                                        class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="value === 'Cash' ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                    <a href="#" @click.prevent="value = 'Cash'; open = false" class="block px-3 py-2 rounded-lg text-sm transition-colors"
+                                                        :class="value === 'Cash' ? 'bg-sky-100 text-gray-700 font-semibold' : 'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         Cash
                                                     </a>
                                                 </li>
@@ -258,149 +383,37 @@
                                         </div>
                                     </div>
                                 </div>
-
                             </div>
 
-                            <div
-                                class="bg-gray-50 p-4 rounded-lg border border-gray-200 flex flex-col justify-center h-full">
-                                <div class="space-y-2">
-                                    <div class="flex justify-between items-center text-sm">
-                                        <span class="text-gray-700 font-medium">Subtotal Layanan</span>
-                                        <span class="text-gray-500 font-medium" id="display_subtotal">Rp
-                                            {{ number_format($totalAsli, 0, ',', '.') }}</span>
+                            <div class="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-700 font-semibold">Subtotal</span>
+                                    <span class="text-gray-500 font-medium" id="display_subtotal">Rp {{ number_format($totalAsli, 0, ',', '.') }}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-sm">
+                                    <span class="text-gray-700 font-semibold">Diskon</span>
+                                    <div class="text-right">
+                                        <input type="hidden" name="diskon" id="diskon_hidden" value="{{ $diskonInput }}">
+                                        <input type="text" id="diskon_input"
+                                            class="w-26 border border-gray-200 px-2 py-1 rounded-md text-right focus:border-sky-400 outline-none text-red-500 font-medium bg-gray"
+                                            value="{{ $diskonInput > 0 ? 'Rp ' . number_format($diskonInput, 0, ',', '.') : '' }}" placeholder="Rp 0">
                                     </div>
-                                    <div class="flex justify-between items-center text-sm">
-                                        <span class="text-gray-700 font-medium">Diskon</span>
-                                        <div class="text-right">
-                                            <input type="hidden" name="diskon" id="diskon_hidden"
-                                                value="{{ $diskonInput }}">
-                                            <input type="text" id="diskon_input"
-                                                class="w-26 border border-gray-200 px-1.5 py-1 rounded-md text-right focus:border-sky-400 outline-none text-red-500 font-medium"
-                                                value="{{ $diskonInput > 0 ? 'Rp ' . number_format($diskonInput, 0, ',', '.') : '' }}"
-                                                placeholder="Rp 0">
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-between items-center text-sm border-t border-gray-200 pt-1">
-                                        <span class="text-gray-700 font-bold">Grand Total</span>
-                                        <div class="text-right">
-                                            <input type="hidden" name="total_harga" id="total_harga_input"
-                                                value="{{ $totalHargaInput }}">
-                                            <span class="text-xl font-bold text-emerald-500" id="totalHargaRupiah">Rp
-                                                {{ number_format($totalHargaInput, 0, ',', '.') }}</span>
-                                        </div>
+                                </div>
+                                <div class="flex justify-between items-center text-sm border-t border-gray-200 pt-3 mt-1">
+                                    <span class="text-lg text-gray-700 font-semibold">Grand Total</span>
+                                    <div class="text-right">
+                                        <input type="hidden" name="total_harga" id="total_harga_input" value="{{ $totalHargaInput }}">
+                                        <span class="text-xl font-black text-emerald-500" id="totalHargaRupiah">Rp {{ number_format($totalHargaInput, 0, ',', '.') }}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                </div>
-
-                <div class="space-y-3">
-                    {{-- # Box Informasi Pelanggan --}}
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4 relative overflow-hidden">
-                        <div class="flex items-center justify-between gap-2 mb-4 relative z-10">
-                            <div class="flex items-center gap-2">
-                                <h4 class="text-lg font-bold text-gray-700 m-0">Informasi Pelanggan</h4>
-                            </div>
-
-                            @if ($order->pelanggan && $order->pelanggan->telp_pelanggan)
-                                @php
-                                    $waNumber = preg_replace('/[^0-9]/', '', $order->pelanggan->telp_pelanggan);
-
-                                    if (substr($waNumber, 0, 1) == '0') {
-                                        $waNumber = '62' . substr($waNumber, 1);
-                                    }
-                                @endphp
-                                <a href="https://wa.me/{{ $waNumber }}" target="_blank" rel="noopener noreferrer"
-                                    class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#25D366] hover:bg-[#1ebd5a] text-white text-sm font-medium rounded-lg transition-colors shadow-sm outline-none">
-                                    <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.405-.883-.733-1.48-1.64-1.653-1.938-.173-.298-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-                                    </svg>
-                                    Chat Pelanggan
-                                </a>
-                            @else
-                                <span class="text-xs text-gray-400 font-medium italic">Nomor WA Tidak Tersedia</span>
-                            @endif
-                        </div>
-
-                        <div class="space-y-4 relative z-10">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700">Nama</label>
-                                <p class="text-sm text-gray-700">{{ $order->pelanggan->nama_pelanggan }}</p>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700">Alamat</label>
-                                <p class="text-sm text-gray-700 leading-relaxed">{{ $order->alamat_lokasi ?? '-' }}</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {{-- # Box Jadwal Pengerjaan --}}
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
-                        <div class="flex items-center gap-2 mb-5">
-                            <h4 class="text-lg font-bold text-gray-700 m-0">Jadwal Pengerjaan</h4>
-                        </div>
-
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Tanggal Pengerjaan</label>
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                        <x-lucide-calendar class="h-4 w-4 stroke-[2]" />
-                                    </div>
-                                    <input type="text" name="tanggal_pengerjaan" id="input_tanggal_pengerjaan"
-                                        value="{{ $order->tanggal_pengerjaan }}" required placeholder="Pilih Tanggal..."
-                                        x-data x-init="flatpickr($el, {
-                                            dateFormat: 'Y-m-d',
-                                            altInput: true,
-                                            altFormat: 'd F Y',
-                                            locale: 'id',
-                                            minDate: 'today'
-                                        })"
-                                        class="w-full max-w-xs h-9 bg-gray-50 border border-gray-200 pl-9 pr-3 rounded-lg text-sm focus:border-sky-400 focus:border-1 outline-none transition-all cursor-pointer text-gray-700">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-1">Waktu Mulai</label>
-                                <div class="relative">
-                                    <div
-                                        class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                                        <x-lucide-clock class="h-4 w-4" />
-                                    </div>
-                                    <input type="text" name="jam_pengerjaan" id="input_jam_pengerjaan"
-                                        value="{{ \Carbon\Carbon::parse($order->jam_pengerjaan)->format('H:i') }}"
-                                        required placeholder="Pilih Jam..." x-data x-init="flatpickr($el, {
-                                            enableTime: true,
-                                            noCalendar: true,
-                                            dateFormat: 'H:i',
-                                            time_24hr: true
-                                        })"
-                                        class="w-full max-w-xs h-9 bg-gray-50 border border-gray-200 pl-9 pr-3 rounded-lg text-sm focus:border-sky-400 focus:border-1 outline-none transition-all cursor-pointer text-gray-700">
-                                </div>
-                            </div>
-                            <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 mt-2 space-y-2">
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-yellow-500 font-medium">Estimasi Durasi</span>
-                                    <span class="font-medium text-yellow-500"><input type="text" id="estimasi-durasi"
-                                            class="bg-transparent w-24 text-right outline-none cursor-default"
-                                            value="0" readonly></span>
-                                </div>
-                                <div class="flex justify-between text-sm">
-                                    <span class="text-yellow-500 font-medium">Estimasi Selesai</span>
-                                    <span class="font-bold text-yellow-500"><input type="text" id="jam-selesai"
-                                            class="bg-transparent w-24 text-right outline-none cursor-default"
-                                            value="" readonly></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
+                    {{-- Box Catatan Khusus --}}
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-4">
                         <div class="flex items-center gap-2 mb-3">
-                            <x-lucide-sticky-note class="w-4 h-4 text-yellow-500" />
-                            <h4 class="text-sm font-semibold text-yellow-500 m-0">Catatan Khusus</h4>
+                            <h4 class="text-lg font-bold text-gray-700 m-0">Catatan Khusus</h4>
                         </div>
                         <p class="text-sm text-gray-500 leading-relaxed italic">
                             {{ $order->catatan ?? 'Tidak ada catatan tambahan dari pelanggan untuk order ini.' }}
@@ -463,13 +476,17 @@
                                                 data-id="{{ $sub->id }}"
                                                 data-nama="{{ $rootName . ' - ' . $sub->nama_subkategori }}"
                                                 data-harga="{{ $sub->harga }}" data-durasi="{{ $sub->durasi ?? 0 }}">
-                                                <div class="w-full h-28 bg-gray-100 flex items-center justify-center relative overflow-hidden group-hover:bg-sky-50 transition-colors">
-                                                    <x-lucide-image class="w-8 h-8 text-gray-300 group-hover:text-sky-300 transition-colors" />
+                                                <div
+                                                    class="w-full h-28 bg-gray-100 flex items-center justify-center relative overflow-hidden group-hover:bg-sky-50 transition-colors">
+                                                    <x-lucide-image
+                                                        class="w-8 h-8 text-gray-300 group-hover:text-sky-300 transition-colors" />
                                                 </div>
 
                                                 <div class="p-3 flex flex-col flex-1">
-                                                    <span class="text-sm font-semibold text-gray-700 mb-1 leading-snug transition-colors">{{ $sub->nama_subkategori }}</span>
-                                                    <span class="text-xs font-medium text-gray-500 mt-auto pt-2">Rp {{ number_format($sub->harga, 0, ',', '.') }}</span>
+                                                    <span
+                                                        class="text-sm font-semibold text-gray-700 mb-1 leading-snug transition-colors">{{ $sub->nama_subkategori }}</span>
+                                                    <span class="text-xs font-medium text-gray-500 mt-auto pt-2">Rp
+                                                        {{ number_format($sub->harga, 0, ',', '.') }}</span>
                                                 </div>
                                             </div>
                                         @endforeach
@@ -541,7 +558,7 @@
                                         this.updateCounter;
                                         const otherValue = document.getElementById('petugasSelect2').value;
                                         return Array.from(document.getElementById('petugasSelect1').options)
-                                                    .filter(opt => opt.value !== '' && opt.value !== otherValue);
+                                            .filter(opt => opt.value !== '' && opt.value !== otherValue);
                                     }
                                 }" @click.away="open = false" class="relative w-full">
 
@@ -558,12 +575,13 @@
                                     <div x-show="open" x-transition.opacity.duration.200ms style="display: none;"
                                         class="absolute left-0 top-full z-[60] w-full p-1.5 shadow-xl bg-white border border-gray-100 rounded-xl mt-1 overflow-y-auto max-h-48">
                                         <ul class="flex flex-col gap-1">
-                                            <template
-                                                x-for="option in getAvailableOptions()">
+                                            <template x-for="option in getAvailableOptions()">
                                                 <li>
                                                     <a href="#" @click.prevent="selectOption(option.value)"
                                                         class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="selectedValue === option.value ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                        :class="selectedValue === option.value ?
+                                                            'bg-sky-50 text-gray-700 font-medium' :
+                                                            'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         <span x-text="option.text"></span>
                                                     </a>
                                                 </li>
@@ -612,7 +630,7 @@
                                         this.updateCounter; // Pancingan reaktivitas Alpine
                                         const otherValue = document.getElementById('petugasSelect1').value;
                                         return Array.from(document.getElementById('petugasSelect2').options)
-                                                    .filter(opt => opt.value !== '' && opt.value !== otherValue);
+                                            .filter(opt => opt.value !== '' && opt.value !== otherValue);
                                     }
                                 }" @click.away="open = false" class="relative w-full">
 
@@ -635,12 +653,13 @@
                                                     Kosongkan
                                                 </a>
                                             </li>
-                                            <template
-                                                x-for="option in getAvailableOptions()">
+                                            <template x-for="option in getAvailableOptions()">
                                                 <li>
                                                     <a href="#" @click.prevent="selectOption(option.value)"
                                                         class="block px-3 py-2 rounded-lg text-sm transition-colors"
-                                                        :class="selectedValue === option.value ? 'bg-sky-50 text-gray-700 font-medium' : 'text-gray-600 hover:bg-slate-100 font-normal'">
+                                                        :class="selectedValue === option.value ?
+                                                            'bg-sky-50 text-gray-700 font-medium' :
+                                                            'text-gray-600 hover:bg-slate-100 font-normal'">
                                                         <span x-text="option.text"></span>
                                                     </a>
                                                 </li>
@@ -717,6 +736,116 @@
                 editPetugasLayananId: document.getElementById('editPetugasLayananId'),
                 savePetugasBtn: document.getElementById('savePetugasBtn')
             };
+
+            // Logika Time Slot
+            const currentOrderId = "{{ $order->id_order }}";
+            const tanggalInput = document.getElementById('input_tanggal_pengerjaan');
+            const jamInputHidden = document.getElementById('input_jam_pengerjaan');
+            const timeSlotsContainer = document.getElementById('time-slots-container');
+
+            function fetchAndRenderTimeSlots(tanggal) {
+                if (!tanggal) return;
+
+                timeSlotsContainer.innerHTML = `
+                    <div class ="col-span-full text-center text-xs text-gray-400 py-6 flex flex-col items-center gap-2">
+                        <svg class="w-5 h-5 animate-spin text-sky-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        Memeriksa ketersediaan jadwal...
+                    </div>
+                `;
+
+                fetch('/orders/api/cek-jadwal?tanggal=${tanggal}&current_order_id=${currentOrderId}')
+                    .then(res => res.json())
+                    .then(bookedSlots => {
+                        renderSlotsUI(bookedSlots);
+                    })
+                    .catch(err => {
+                        console.error('Error fetching schedule:', err);
+                        timeSlotsContainer.innerHTML =`<div class="col-span-full text-center text-xs text-red-500 py-4">Gagal memuat jadwal. Cek koneksi Anda.</div>`;
+                    });
+            }
+
+            function renderSlotsUI(bookedSlots) {
+                const startHour = 8;
+                const endHour = 17;
+                const intervalMins = 30;
+
+                let html = '';
+                const currentSelectedJam = jamInputHidden.value;
+
+                for (let h = startHour; h <= endHour; h++) {
+                    for (let m = 0; m < 60; m += intervalMins) {
+                        if (h === endHour && m > 0) continue;
+
+                        const hh = String(h).padStart(2, '0');
+                        const mm = String(m).padStart(2, '0');
+                        const timeString = `${hh}:${mm}`;
+                        const slotInMins = (h * 60) + m;
+
+                        let isBooked = false;
+                        let bookedByName = '';
+
+                        for (let slot of bookedSlots) {
+                            const [bH, bM] = slot.jam_mulai.split(':').map(Number);
+                            const [eH, eM] = slot.jam_selesai.split(':').map(Number);
+
+                            const startBookedMins = (bH * 60) + bM;
+                            const endBookedMins = (eH * 60) + eM;
+
+                            if (slotInMins >= startBookedMins && slotInMins < endBookedMins) {
+                                isBooked = true;
+                                bookedByName = slot.nama_pelanggan.split(' ')[0];
+                                break;
+                            }
+                        }
+
+                        if (isBooked) {
+                            html += `
+                                <div class="py-1.5 px-1 rounded-lg border border-gray-200 bg-gray-100/70 text-gray-400 text-center flex flex-col justify-center items-center cursor-not-allowed select-none" title="Udah di-booking sama ${bookedByName}">
+                                    <span class="font-medium text-sm line-through decoration-gray-400">${timeString}</span>
+                                    <span class="text-[10px] font-medium truncate w-full px-1 mt-0.5">${bookedByName}</span>
+                                </div>
+                            `;
+                        } else {
+                            const isSelected = (currentSelectedJam === timeString);
+                            const activeClass = isSelected ?
+                                'border-sky-400 bg-sky-50 text-sky-400 border-1 bordere-sky-400 shadow-sm' :
+                                'border-gray-200 bg-white text-gray-700 hover:border-sky-400 hover:bg-sky-50 transition-colors shadow-sm';
+
+                            html += `
+                                <div onclick="selectTimeSlot('${timeString}')" class="py-2 px-1 rounded-lg border text-center cursor-pointer ${activeClass} flex flex-col justify-center items-center">
+                                    <span class="text-sm">${timeString}</span>
+                                </div>
+                            `;
+                        }
+                    }
+                }
+
+                timeSlotsContainer.innerHTML = html;
+            }
+
+            window.selectTimeSlot = function(timeStr) {
+                if (jamInputHidden._flatpickr) {
+                    jamInputHidden._flatpickr.setDate(timeStr);
+                } else {
+                    jamInputHidden.value = timeStr;
+                }
+
+                jamInputHidden.dispatchEvent(new Event('change'));
+            };
+
+            tanggalInput.addEventListener('change', function(e) {
+                fetchAndRenderTimeSlots(e.target.value);
+            });
+
+            setTimeout(() => fetchAndRenderTimeSlots(tanggalInput.value), 200);
+
+            if (jamInputHidden) {
+                jamInputHidden.addEventListener('change', function() {
+                    updateTotalDurasiDanJamSelesai();
+
+                    fetchAndRenderTimeSlots(tanggalInput.value);
+                });
+            }
 
             // Dispatch Alpine pengganti "new bootstrap.Modal().hide()" 
             const modalController = {

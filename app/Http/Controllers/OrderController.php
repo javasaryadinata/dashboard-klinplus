@@ -354,4 +354,43 @@ class OrderController extends Controller
                 ->with('error', 'Gagal memperbarui layanan: ' . $e->getMessage());
         }
     }
+
+    public function cekJadwal(Request $request)
+    {
+        $tanggal = $request->query('tanggal');
+        $currentOrderId = $request->query('current_order_id');
+
+        if (!$tanggal) {
+            return response()->json([]);
+        }
+
+        $query = Order::with(['pelanggan', 'orderDetails'])
+            ->whereDate('tanggal_pengerjaan', $tanggal)
+            ->whereIn('status', ['Scheduled', 'Selesai']);
+
+        if ($currentOrderId) {
+            $query->where('id_order', '!=', $currentOrderId);
+        }
+
+        $orders = $query->get();
+
+        $bookedSlots = $orders->map(function ($order) {
+            $totalDurasi = $order->orderDetails->sum('durasi_layanan') ?? 0;
+
+            $jamMulai = Carbon::parse($order->jam_pengerjaan);
+            $jamSelesai = $jamMulai->copy()->addMinutes($totalDurasi);
+
+            return [
+                'id_order'       => $order->id_order,
+                'nama_pelanggan' => $order->pelanggan->nama_pelanggan ?? 'Hamba Allah',
+                'jam_mulai'      => $jamMulai->format('H:i'),
+                'jam_selesai'    => $jamSelesai->format('H:i'),
+                'durasi_menit'   => $totalDurasi
+            ];
+        });
+
+        $bookedSlots = $bookedSlots->sortBy('jam_mulai')->values()->all();
+
+        return response()->json($bookedSlots);
+    }
 }
